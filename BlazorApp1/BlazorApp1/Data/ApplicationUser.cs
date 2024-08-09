@@ -12,8 +12,8 @@ namespace BlazorApp1.Data
         public string? Surname;
         [Required]
         public string? Patronymic;
-        [Required]
-        public string? StudyGruop;
+        //[Required]
+        //public string? StudyGroup;
     }
 
     public static class Roles

@@ -72,9 +72,6 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         ApplicationUser ??= await context.Users.FirstOrDefaultAsync(m => m.Id == ID);
-        ApplicationUser.Name = "";
-        ApplicationUser.Surname = "";
-        ApplicationUser.Patronymic = "";
         if (ApplicationUser is null)
         {
             NavigationManager.NavigateTo("notfound");

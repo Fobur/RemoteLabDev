@@ -95,6 +95,9 @@ using (var scope = app.Services.CreateScope())
         user.Email = email;
         user.UserName = "admin";
         user.EmailConfirmed = true;
+        user.Name = "";
+        user.Surname = "";
+        user.Patronymic = "";
 
         await userManager.CreateAsync(user, password);
 
