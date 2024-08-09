@@ -7,13 +7,13 @@ namespace BlazorApp1.Data
     public class ApplicationUser : IdentityUser
     {
         [Required]
-        public string? Name;
+        public string? Name { get; set; }
         [Required]
-        public string? Surname;
+        public string? Surname { get; set; }
         [Required]
-        public string? Patronymic;
-        [Required]
-        public string? StudyGruop;
+        public string? Patronymic { get; set; }
+        //[Required]
+        //public string? StudyGroup;
     }
 
     public static class Roles
