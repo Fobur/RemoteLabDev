@@ -1,0 +1,105 @@
+﻿@page "/stands/edit"
+
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp1.Models
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Stand</h4>
+<hr />
+@if(Stand == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Stand" OnValidSubmit="UpdateStand" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Stand.ID" value="@Stand.ID" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Stand.Name" class="form-control" />
+                    <ValidationMessage For="() => Stand.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="Stand.Description" class="form-control" />
+                    <ValidationMessage For="() => Stand.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="videourl" class="form-label">VideoUrl:</label>
+                    <InputText id="videourl" @bind-Value="Stand.VideoUrl" class="form-control" />
+                    <ValidationMessage For="() => Stand.VideoUrl" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="ansiblescript" class="form-label">AnsibleScript:</label>
+                    <InputText id="ansiblescript" @bind-Value="Stand.AnsibleScript" class="form-control" />
+                    <ValidationMessage For="() => Stand.AnsibleScript" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/stands">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int ID { get; set; }
+
+    [SupplyParameterFromForm]
+    public Stand? Stand { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Stand ??= await context.Stand.FirstOrDefaultAsync(m => m.ID == ID);
+
+        if (Stand is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateStand()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Stand!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!StandExists(Stand!.ID))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/stands");
+    }
+
+    bool StandExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Stand.Any(e => e.ID == id);
+    }
+}

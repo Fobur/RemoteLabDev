@@ -1,0 +1,28 @@
+﻿@page "/stands"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorApp1.Models
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="stands/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="DbFactory.CreateDbContext().Stand">
+    <PropertyColumn Property="stand => stand.Name" />
+    <PropertyColumn Property="stand => stand.Description" />
+    <PropertyColumn Property="stand => stand.VideoUrl" />
+    <PropertyColumn Property="stand => stand.AnsibleScript" />
+
+    <TemplateColumn Context="stand">
+        <a href="@($"stands/edit?id={stand.ID}")">Edit</a> |
+        <a href="@($"stands/details?id={stand.ID}")">Details</a> |
+        <a href="@($"stands/delete?id={stand.ID}")">Delete</a> |
+        <a href="@($"stands/programming?id={stand.ID}")">Code</a>
+    </TemplateColumn>
+</QuickGrid>

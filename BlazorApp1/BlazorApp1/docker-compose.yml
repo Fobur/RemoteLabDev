@@ -1,0 +1,49 @@
+# Use postgres/example user/password credentials
+version: '3.9'
+
+services:
+
+  db:
+    container_name: postgresdb
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      PGDATA: /data/postgres
+    volumes:
+    - postgres:/data/postgres
+    ports:
+    - "5432:5432"
+ 
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    restart: unless-stopped
+
+  blazorapp:
+    container_name: blazorapp
+    build: 
+        context: ..
+        dockerfile: Dockerfile
+    environment:
+        ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=postgres;Username=postgres;Password=example"
+        ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+        - db
+    ports:
+        - "8080:8080"
+
+
+volumes:
+    postgres:
+    pgadmin:

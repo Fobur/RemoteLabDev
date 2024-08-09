@@ -1,0 +1,52 @@
+﻿@page "/stands/programming"
+
+@rendermode InteractiveWebAssembly
+@using BlazorMonaco;
+@using System.Runtime.CompilerServices;
+
+<PageTitle>Code</PageTitle>
+
+<h1>Программирование стенда</h1>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm fill-content">
+            camera
+        </div>
+        <div class="col-lg">
+            <div class="">
+                <StandaloneCodeEditor @ref="_editor"
+                                      Id="sample-code-editor-test"
+                                      ConstructionOptions="EditorConstructionOptions" />
+            </div>
+            <div class="row-md" style="color:aquamarine">
+                console
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private string _defaultValue = "Default editor value.";
+    private StandaloneEditorConstructionOptions _defaultOptions;
+
+    [System.Diagnostics.CodeAnalysis.AllowNull]
+    private StandaloneCodeEditor _editor;
+
+    public Programming()
+    {
+        _defaultOptions = new StandaloneEditorConstructionOptions
+            {
+                AutomaticLayout = true,
+                Language = "c++",
+                GlyphMargin = true,
+                Value = _defaultValue,
+                ScrollBeyondLastLine = false,
+                RenderFinalNewline = "on",
+                SelectOnLineNumbers = true
+            };
+    }
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor) => _defaultOptions;
+}
