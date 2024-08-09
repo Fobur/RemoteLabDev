@@ -64,7 +64,6 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         Stand ??= await context.Stand.FirstOrDefaultAsync(m => m.ID == ID);
-
         if (Stand is null)
         {
             NavigationManager.NavigateTo("notfound");
