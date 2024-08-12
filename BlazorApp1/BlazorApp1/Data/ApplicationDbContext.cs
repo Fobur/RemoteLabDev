@@ -10,6 +10,10 @@ namespace BlazorApp1.Data
         public DbSet<Scheduler> Schedulers { get; set; } = default!;
         public DbSet<ScheduledStand> ScheduledStands { get; set; } = default!;
         public DbSet<StudentGroup> StudentGroups { get; set; } = default!;
+        public DbSet<Organization> Organizations { get; set; } = default!;
+        public DbSet<OrganizationStand> OrganizationStands { get; set; } = default!;
+        public DbSet<Service> Services { get; set; } = default!;
+        public DbSet<ServiceType> ServiceTypes { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

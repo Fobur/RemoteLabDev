@@ -2,18 +2,17 @@
 
 namespace BlazorApp1.Models
 {
-    public class Stand
+    public class ServiceType
     {
         [Key]
         public int ID { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]
-        public string? Description { get; set; }
+        public string Description { get; set; }
         [Required]
-        public string? VideoUrl { get; set; }
-        public Equipment? Equipment { get; set; }
+        public long DefaultTimeout { get; set; }
         [Required]
-        public string? AnsibleScript { get; set; }
+        public string DockerFilename { get; set; }
     }
 }
