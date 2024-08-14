@@ -2,11 +2,13 @@
 
 namespace BlazorApp1.Models
 {
-    public class Equipment
+    public class OrganizationStand
     {
         [Key]
         public string ID { get; set; }
         [Required]
-        public string? Description { get; set; }
+        public Stand Stand { get; set; }
+        [Required]
+        public Organization Organization { get; set; }
     }
 }

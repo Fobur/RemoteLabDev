@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using BlazorApp1.Models;
 
 namespace BlazorApp1.Data
 {
@@ -12,8 +13,8 @@ namespace BlazorApp1.Data
         public string? Surname { get; set; }
         [Required]
         public string? Patronymic { get; set; }
-        //[Required]
-        //public string? StudyGroup;
+        [Required]
+        public StudentGroup? StudentGroup { get; set; }
     }
 
     public static class Roles

@@ -25,7 +25,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetValue<string>("DatabaseSettings:PostgressConnectionString") ?? throw new InvalidOperationException("Connection string not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+    builder.Configuration.GetValue<string>("DatabaseSettings:PostgressConnectionString") ?? throw new InvalidOperationException("Connection string not found.");
 
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -98,6 +99,7 @@ using (var scope = app.Services.CreateScope())
         user.Name = "";
         user.Surname = "";
         user.Patronymic = "";
+        user.StudentGroup = new BlazorApp1.Models.StudentGroup(){ Name="", Description="", ID="0" };
 
         await userManager.CreateAsync(user, password);
 
