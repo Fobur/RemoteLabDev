@@ -4,14 +4,28 @@
 @using BlazorMonaco;
 @using System.Runtime.CompilerServices;
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.0.3/adapter.min.js" ></script>
+<script type="text/javascript" src="janus.js" ></script>
+<script type="text/javascript" src="streamingtest.js"></script>
+
 <PageTitle>Code</PageTitle>
 
 <h1>Программирование стенда</h1>
 
 <div class="container">
     <div class="row">
-        <div class="col-sm fill-content">
-            camera
+        <div class="col-sm-6">
+            <button class="btn btn-secondary" autocomplete="off" id="start">Start</button>
+            <div class="card mt-4 w-100 hide" id="info">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-circle-info"></i> Metadata</span>
+                </div>
+                <div class="card-body">
+                    <pre id="metadata" class="card card-body bg-gray mt-3"></pre>
+                </div>
+            </div>
+            <div class="col-md-6" id="videos"></div>
         </div>
         <div class="col-lg">
             <div class="">
