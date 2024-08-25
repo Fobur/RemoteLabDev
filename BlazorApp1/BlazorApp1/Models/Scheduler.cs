@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 
 namespace BlazorApp1.Models
@@ -6,9 +7,10 @@ namespace BlazorApp1.Models
     public class Scheduler
     {
         [Key]
-        public string ID { get; set; }
-        [Required]
-        public StudentGroup StudentGroup { get; set; }
+        public string? ID { get; set; }
+        public string? StudentGroupID { get; set; }
+        [Required, ForeignKey(nameof(StudentGroupID))]
+        public StudentGroup? StudentGroup { get; set; }
         [Required]
         public DateTime SessionStartTime { get; set; }
         [Required]

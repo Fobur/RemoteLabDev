@@ -1,0 +1,52 @@
+﻿@page "/admin/studentgroups/create"
+
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp1.Models
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h4>StudentGroup</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="StudentGroup" OnValidSubmit="AddStudentGroup" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label> 
+                <InputText id="name" @bind-Value="StudentGroup.Name" class="form-control" /> 
+                <ValidationMessage For="() => StudentGroup.Name" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label> 
+                <InputText id="description" @bind-Value="StudentGroup.Description" class="form-control" /> 
+                <ValidationMessage For="() => StudentGroup.Description" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/admin/studentgroups">Back to List</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public StudentGroup StudentGroup { get; set; } = new();
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddStudentGroup()
+    {
+        StudentGroup.ID = Guid.NewGuid().ToString();
+        using var context = DbFactory.CreateDbContext();
+        context.StudentGroups.Add(StudentGroup);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/admin/studentgroups");
+    }
+}

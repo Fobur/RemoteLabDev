@@ -44,7 +44,11 @@ namespace BlazorApp1.Models
          [Display(Name = "Patronymic")]
          public string Patronymic { get; set; } = "";
 
-         public List<string> Claims { get; set; }
+         [Display(Name = "StudentGroup")]
+         public StudentGroup StudentGroup { get; set; }
+
+
+        public List<string> Claims { get; set; }
          public IList<string> Roles { get; set; }
          
     }

@@ -41,10 +41,27 @@
                     </form>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="admin/users">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Пользователи
+                    <NavLink class="nav-link" href="stands/">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Стенды
                     </NavLink>
                 </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="schedule/">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Расписание
+                    </NavLink>
+                </div>
+                <AuthorizeView Roles="Admin" Context="_">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="admin/users">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Пользователи
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/admin/studentgroups">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Группы
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
             </Authorized>
             <NotAuthorized>
                 <div class="nav-item px-3">

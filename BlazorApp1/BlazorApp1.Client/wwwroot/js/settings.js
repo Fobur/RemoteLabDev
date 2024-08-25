@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 
 // We use this shared JavaScript file as a simple way to have all demos
 // refer to the same settings, e.g., in terms of which server to connect
@@ -51,11 +51,7 @@
 // in the presented order. The first working server will be used for
 // the whole session.
 //
-var server = null;
-if(window.location.protocol === 'http:')
-	var server = "ws://" + "172.17.0.2" + ":8188";
-else
-var server = "wss://" + "172.17.0.2" + ":8188";
+var server = "wss://" + "localhost:8188";
 
 // When creating a Janus object, we can also specify which STUN/TURN
 // servers we'd like to use to gather additional candidates. This is

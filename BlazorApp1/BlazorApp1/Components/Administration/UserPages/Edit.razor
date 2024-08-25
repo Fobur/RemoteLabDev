@@ -1,0 +1,136 @@
+﻿@page "/admin/users/edit"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp1.Data
+@using BlazorApp1.Models
+
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>User</h4>
+<hr />
+@if (ApplicationUser == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ApplicationUser" OnValidSubmit="UpdateUser" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="ApplicationUser.Id" value="@ApplicationUser.Id" />
+                <div class="mb-3">
+                    <label for="username" class="form-label">Ник:</label>
+                    <InputText id="username" @bind-Value="ApplicationUser.UserName" class="form-control" />
+                    <ValidationMessage For="() => ApplicationUser.UserName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Почта:</label>
+                    <InputText id="email" @bind-Value="ApplicationUser.Email" class="form-control" />
+                    <ValidationMessage For="() => ApplicationUser.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Имя:</label>
+                    <InputText id="name" @bind-Value="ApplicationUser.Name" class="form-control" />
+                    <ValidationMessage For="() => ApplicationUser.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="surname" class="form-label">Фамиилия:</label>
+                    <InputText id="surname" @bind-Value="ApplicationUser.Surname" class="form-control" />
+                    <ValidationMessage For="() => ApplicationUser.Surname" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="patronymic" class="form-label">Отчество:</label>
+                    <InputText id="patronymic" @bind-Value="ApplicationUser.Patronymic" class="form-control" />
+                    <ValidationMessage For="() => ApplicationUser.Patronymic" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="studentgroup" class="form-label">Учебная группа:</label>
+                    <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupID" class="form-control">
+                        @foreach (var group in studentGroups)
+                        {
+                            <option value="@group.ID">@group.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => ApplicationUser.StudentGroupID" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="admin/users">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ID { get; set; }
+
+    [SupplyParameterFromForm]
+    private ApplicationUser? ApplicationUser { get; set; }
+
+    public List<StudentGroup>? studentGroups { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ApplicationUser ??= await context.Users.Include(x => x.StudentGroup).FirstOrDefaultAsync(m => m.Id == ID);
+        studentGroups ??= context.StudentGroups.ToList();
+        if (ApplicationUser is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateUser()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var user = await UserManager.FindByIdAsync(ApplicationUser.Id);
+
+        user.Email = ApplicationUser.Email;
+        user.UserName = ApplicationUser.UserName;
+        user.Name = ApplicationUser.Name;
+        user.Surname = ApplicationUser.Surname;
+        user.Patronymic = ApplicationUser.Patronymic;
+        user.StudentGroupID = ApplicationUser.StudentGroupID;
+
+        try
+        {
+            var result = await UserManager.UpdateAsync(user);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UserExists(user!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/admin/users/");
+    }
+
+    bool UserExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Users.Any(e => e.Id == id);
+    }
+}

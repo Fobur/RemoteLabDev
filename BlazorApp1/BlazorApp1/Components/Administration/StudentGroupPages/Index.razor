@@ -1,0 +1,38 @@
+﻿@page "/admin/studentgroups"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorApp1.Models
+@using BlazorApp1.Data
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@implements IAsyncDisposable
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="admin/studentgroups/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.StudentGroups">
+    <PropertyColumn Property="studentgroup => studentgroup.Name" />
+    <PropertyColumn Property="studentgroup => studentgroup.Description" />
+
+    <TemplateColumn Context="studentgroup">
+        <a href="@($"admin/studentgroups/edit?id={studentgroup.ID}")">Edit</a> |
+        <a href="@($"admin/studentgroups/details?id={studentgroup.ID}")">Details</a> |
+        <a href="@($"admin/studentgroups/delete?id={studentgroup.ID}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

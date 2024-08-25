@@ -1,21 +1,26 @@
 ﻿@page "/stands/programming"
 
 @rendermode InteractiveWebAssembly
-@using BlazorMonaco;
-@using System.Runtime.CompilerServices;
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.0.3/adapter.min.js" ></script>
-<script type="text/javascript" src="janus.js" ></script>
-<script type="text/javascript" src="streamingtest.js"></script>
+@using BlazorMonaco
+@using System.Runtime.CompilerServices
+@using MQTTnet
+@using Mqtt
+@using MQTTnet.Client
+@inject IJSRuntime Js
+@implements IAsyncDisposable
 
 <PageTitle>Code</PageTitle>
 
-<h1>Программирование стенда</h1>
+<head>
+    <script type="text/javascript" src="js/settings.js"></script>
+    <script type="text/javascript" src="js/janus.js"></script>
+    <script type="module" src="js/streaming.js"></script>
+</head>
 
+<h1>Программирование стенда</h1>
 <div class="container">
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <button class="btn btn-secondary" autocomplete="off" id="start">Start</button>
             <div class="card mt-4 w-100 hide" id="info">
                 <div class="card-header">
@@ -25,16 +30,26 @@
                     <pre id="metadata" class="card card-body bg-gray mt-3"></pre>
                 </div>
             </div>
-            <div class="col-md-6" id="videos"></div>
+            <div class="col-md-4" id="videos"></div>
         </div>
-        <div class="col-lg">
-            <div class="">
+        <div class="col-lg-8">
+            <div>
                 <StandaloneCodeEditor @ref="_editor"
-                                      Id="sample-code-editor-test"
+                                      Id="code-editor"
                                       ConstructionOptions="EditorConstructionOptions" />
             </div>
-            <div class="row-md" style="color:aquamarine">
-                console
+            <div class="row-md">
+                <div class="card">
+                    <div class="card-header">
+                        Console
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var logEntry in _console)
+                        {
+                            <li class="list-group-item">@logEntry</li>
+                        }
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -42,11 +57,16 @@
 
 
 @code {
-    private string _defaultValue = "Default editor value.";
+    private string _defaultValue = "";
     private StandaloneEditorConstructionOptions _defaultOptions;
+    private IJSObjectReference? _module;
 
     [System.Diagnostics.CodeAnalysis.AllowNull]
     private StandaloneCodeEditor _editor;
+
+    private List<string> _console { get; set; } = new List<string>();
+
+    private IMqttClient? mqttClient { get; set; }
 
     public Programming()
     {
@@ -60,7 +80,89 @@
                 RenderFinalNewline = "on",
                 SelectOnLineNumbers = true
             };
+        var initializeResult = InitializeMqttClient();
+    }
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneDiffEditor editor)
+    {
+        return _defaultOptions;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //_module = await Js.InvokeAsync<IJSObjectReference>(
+            //    "import", "streaming.js");
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task InitializeMqttClient()
+    {
+        if (mqttClient == null)
+        {
+            mqttClient ??= new MqttFactory().CreateMqttClient();
+            await MqttClientConnection.Connect_Client_Using_WebSockets(mqttClient);
+            await MqttSubscribe.Subscribe_Topic(mqttClient, "lab/");
+            ConcurrentProcessingDisableAutoAcknowledge(CancellationToken.None, mqttClient);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Perform async cleanup.
+        if (mqttClient != null)
+        {
+            if (mqttClient.IsConnected)
+                await MqttClientConnection.Clean_Disconnect(mqttClient);
+            mqttClient.Dispose();
+        }
+        
+        // Dispose of unmanaged resources.
+        _editor.Dispose();
+        
+        // Suppress finalization.
+        GC.SuppressFinalize(this);
+    }
+
+    private async Task SendMQTTMessage(string topic, string value)
+    {
+        if (mqttClient is not null)
+            await MqttClientPublish.Publish_Application_Message(mqttClient, topic, value);
+    }
+
+    private async Task SendMQTTMessage(MqttMessage message)
+    {
+        if (mqttClient is not null)
+            await MqttClientPublish.Publish_Application_Message(mqttClient, message.Topic, message.Message);
     }
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor) => _defaultOptions;
+
+    public static void ConcurrentProcessingDisableAutoAcknowledge(CancellationToken shutdownToken, IMqttClient mqttClient)
+    {
+        mqttClient.ApplicationMessageReceivedAsync += ea =>
+        {
+            ea.AutoAcknowledge = false;
+
+            async Task ProcessAsync()
+            {
+                // DO YOUR WORK HERE!
+                // Need to implement responses
+                Console.WriteLine(ea.ApplicationMessage.PayloadSegment.ToString());
+                await Task.Delay(1000, shutdownToken);
+                await ea.AcknowledgeAsync(shutdownToken);
+                // WARNING: If process failures are not transient the message will be retried on every restart of the client
+                //          A failed message will not be dispatched again to the client as Mqtt does not have a NACK packet to let
+                //          the broker know processing failed
+                //
+                // Optionally: Use a framework like Polly to create a retry policy: https://github.com/App-vNext/Polly#retry
+            }
+
+            _ = Task.Run(ProcessAsync, shutdownToken);
+
+            return Task.CompletedTask;
+        };
+    }
 }
