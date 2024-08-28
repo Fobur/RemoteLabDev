@@ -1,36 +1,44 @@
 ﻿@page "/stands/programming"
 
-@rendermode InteractiveWebAssembly
+@rendermode InteractiveServer
 @using BlazorMonaco
 @using System.Runtime.CompilerServices
 @using MQTTnet
 @using Mqtt
 @using MQTTnet.Client
-@inject IJSRuntime Js
+@inject IJSRuntime JS
 @implements IAsyncDisposable
 
 <PageTitle>Code</PageTitle>
 
 <head>
-    <script type="text/javascript" src="js/settings.js"></script>
-    <script type="text/javascript" src="js/janus.js"></script>
-    <script type="module" src="js/streaming.js"></script>
 </head>
 
 <h1>Программирование стенда</h1>
 <div class="container">
     <div class="row">
-        <div class="col-sm-4">
-            <button class="btn btn-secondary" autocomplete="off" id="start">Start</button>
-            <div class="card mt-4 w-100 hide" id="info">
-                <div class="card-header">
-                    <span class="card-title"><i class="fa-solid fa-circle-info"></i> Metadata</span>
-                </div>
-                <div class="card-body">
-                    <pre id="metadata" class="card card-body bg-gray mt-3"></pre>
+        <div class="col-md-4">
+            <div class="btn-group btn-group-sm">
+                <div class="btn-group btn-group-sm">
+                    <button @onclick=StartStream>Start</button>
+                    <button @onclick=StopStream>Stop</button>
                 </div>
             </div>
-            <div class="col-md-4" id="videos"></div>
+            
+            <div class="container card" id="streams">
+                <div class="row hide" id="info">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="font-size:large;">
+                            <h3 class="panel-title"><i class="fa fa-info-circle"></i></h3>
+                        </div>
+                        <div class="panel-body">
+                            <pre id="metadata" style="word-break: break-word;"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md" id="videos">
+                </div>
+            </div>
         </div>
         <div class="col-lg-8">
             <div>
@@ -68,6 +76,9 @@
 
     private IMqttClient? mqttClient { get; set; }
 
+    [SupplyParameterFromQuery]
+    public int ID { get; set; }
+
     public Programming()
     {
         _defaultOptions = new StandaloneEditorConstructionOptions
@@ -80,7 +91,6 @@
                 RenderFinalNewline = "on",
                 SelectOnLineNumbers = true
             };
-        var initializeResult = InitializeMqttClient();
     }
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneDiffEditor editor)
@@ -88,12 +98,27 @@
         return _defaultOptions;
     }
 
+    public void InitJanus()
+    {
+        JS.InvokeVoidAsync("startJanusStreamModule");
+    }
+
+    public void StartStream()
+    {
+        JS.InvokeVoidAsync("startStream", ID);
+    }
+
+    public async Task StopStream()
+    {
+        await JS.InvokeVoidAsync("stopStream");
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            //_module = await Js.InvokeAsync<IJSObjectReference>(
-            //    "import", "streaming.js");
+            InitJanus();
+            await InitializeMqttClient();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -103,7 +128,9 @@
         if (mqttClient == null)
         {
             mqttClient ??= new MqttFactory().CreateMqttClient();
-            await MqttClientConnection.Connect_Client_Using_WebSockets(mqttClient);
+            //await MqttClientConnection.Connect_Client_Using_WebSockets(mqttClient);
+            await MqttClientConnection.Connect_Client_Using_WebSocketsTls(mqttClient);
+            //await MqttClientConnection.Connect_Client_Using_TLS_1_2(mqttClient);
             await MqttSubscribe.Subscribe_Topic(mqttClient, "lab/");
             ConcurrentProcessingDisableAutoAcknowledge(CancellationToken.None, mqttClient);
         }

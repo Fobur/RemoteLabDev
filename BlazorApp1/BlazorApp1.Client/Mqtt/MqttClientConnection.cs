@@ -2,6 +2,8 @@
 using MQTTnet.Formatter;
 using MQTTnet;
 using System.Security.Authentication;
+using System.Threading;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BlazorApp1.Client.Mqtt
 {
@@ -66,7 +68,8 @@ namespace BlazorApp1.Client.Mqtt
                 // In MQTTv5 the response contains much more information.
                 var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
-                Console.WriteLine("The Mqtt client is connected.");
+                if (response != null && response.ResultCode == MqttClientConnectResultCode.Success)
+                    Console.WriteLine("The Mqtt client is connected.");
 
                 response.DumpToConsole();
             }
@@ -74,15 +77,23 @@ namespace BlazorApp1.Client.Mqtt
 
         public static async Task Connect_Client_Using_TLS_1_2(IMqttClient mqttClient)
         {
-            var mqttFactory = new MqttFactory();
             var mqttClientOptions = MqttOptions.TslOptions();
 
-            using (var timeout = new CancellationTokenSource(5000))
-            {
-                await mqttClient.ConnectAsync(mqttClientOptions, timeout.Token);
-            
-                Console.WriteLine("The Mqtt client is connected by TSL.");
-            }
+            var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+
+            Console.WriteLine("The Mqtt client is connected by TSL.");
+
+            response.DumpToConsole();
+        }
+
+        public static async Task Connect_Client_Using_TLS_1_2(IMqttClient mqttClient, MqttClientOptions options)
+        {
+
+            var response = await mqttClient.ConnectAsync(options, CancellationToken.None);
+
+            Console.WriteLine("The Mqtt client is connected by TSL.");
+
+            response.DumpToConsole();
         }
 
         public static async Task Connect_Client_Using_WebSockets(IMqttClient mqttClient)
@@ -96,7 +107,25 @@ namespace BlazorApp1.Client.Mqtt
 
             var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
-            Console.WriteLine("The Mqtt client is connected by WebSockets.");
+            if (response.ResultCode == MqttClientConnectResultCode.Success)
+                Console.WriteLine("The Mqtt client is connected by WebSockets.");
+
+            response.DumpToConsole();
+        }
+
+        public static async Task Connect_Client_Using_WebSocketsTls(IMqttClient mqttClient)
+        {
+            /*
+             * This sample creates a simple Mqtt client and connects to a public broker using a WebSocket connection.
+             * 
+             * This is a modified version of the sample _Connect_Client_! See other sample for more details.
+             */
+            var mqttClientOptions = MqttOptions.WebSocketTlsOptions();
+
+            var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+
+            if (response.ResultCode == MqttClientConnectResultCode.Success)
+                Console.WriteLine("The Mqtt client is connected by WebSockets.");
 
             response.DumpToConsole();
         }
@@ -133,18 +162,15 @@ namespace BlazorApp1.Client.Mqtt
             }
         }
 
-        public static async Task Inspect_Certificate_Validation_Errors()
+        public static async Task Inspect_Certificate_Validation_Errors(IMqttClient mqttClient, X509Certificate2Collection _caChain)
         {
             /*
              * This sample prints the certificate information while connection. This data can be used to decide whether a connection is secure or not
              * including the reason for that status.
              */
 
-            var mqttFactory = new MqttFactory();
-
-            using (var mqttClient = mqttFactory.CreateMqttClient())
-            {
-                var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer("mqtt.fluux.io", 8883)
+            
+                var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer("10.40.81.71", 8883)
                     .WithTlsOptions(
                         o =>
                         {
@@ -158,15 +184,20 @@ namespace BlazorApp1.Client.Mqtt
                                     eventArgs.SslPolicyErrors.DumpToConsole();
                                     return true;
                                 });
+                            o.WithIgnoreCertificateRevocationErrors();
+                            o.WithAllowUntrustedCertificates();
+                            o.WithTrustChain(_caChain);
+                            // The default value is determined by the OS. Set manually to force version.
+                            o.WithSslProtocols(SslProtocols.Tls12);
                         })
                     .Build();
 
                 // In MQTTv5 the response contains much more information.
                 using (var timeout = new CancellationTokenSource(5000))
                 {
-                    await mqttClient.ConnectAsync(mqttClientOptions, timeout.Token);
+                    var response = await mqttClient.ConnectAsync(mqttClientOptions, timeout.Token);
                 }
-            }
+                
         }
 
         public static async Task Ping_Server()
