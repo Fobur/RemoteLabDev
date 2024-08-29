@@ -1,5 +1,6 @@
 ﻿using MQTTnet.Client;
 using MQTTnet;
+using BlazorApp1.Client.Models;
 
 namespace BlazorApp1.Client.Mqtt
 {

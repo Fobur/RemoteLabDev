@@ -1,6 +1,7 @@
 ﻿@page "/stands/programming"
 
 @rendermode InteractiveServer
+@using BlazorApp1.Client.Models
 @using BlazorMonaco
 @using System.Runtime.CompilerServices
 @using MQTTnet
@@ -16,12 +17,12 @@
 
 <h1>Программирование стенда</h1>
 <div class="container">
-    <div class="row">
+    <div class="row" style="align-content:flex-start">
         <div class="col-md-4">
             <div class="btn-group btn-group-sm">
                 <div class="btn-group btn-group-sm">
-                    <button @onclick=StartStream>Start</button>
-                    <button @onclick=StopStream>Stop</button>
+                    <button class="btn btn-primary" id="start-stream" @onclick=StartStream>Получить трансляцию</button>
+                    <button class="btn btn-secondary" id="End-stream" @onclick=StopStream>Остановить трансляцию</button>
                 </div>
             </div>
             
@@ -39,6 +40,14 @@
                 <div class="col-md" id="videos">
                 </div>
             </div>
+            <div class="card" style="vertical-align:bottom;">
+                <ul class="list-group list-group-flush" style="min-height: 10rem; max-height: 10rem; overflow: auto; align-items:normal;">
+                    @foreach (var logEntry in _connectionConsole)
+                    {
+                        <li class="list-group-item">@logEntry</li>
+                    }
+                </ul>
+            </div>
         </div>
         <div class="col-lg-8">
             <div>
@@ -51,12 +60,18 @@
                     <div class="card-header">
                         Console
                     </div>
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush" style="min-height: 7rem; max-height: 12rem; overflow: auto; align-items:normal;">
                         @foreach (var logEntry in _console)
                         {
                             <li class="list-group-item">@logEntry</li>
                         }
                     </ul>
+                    <div class="input-group mb3">
+                        <input type="text" class="form-control" placeholder="" id="console_input" @bind-value="_consoleInput" />
+                        <div class="input-group-prepend">
+                            <button class="bt btn-outline-secondary" type="button" @onclick=@SendMessageToConsole>Отправить в консоль</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,6 +88,9 @@
     private StandaloneCodeEditor _editor;
 
     private List<string> _console { get; set; } = new List<string>();
+    private string? _consoleInput { get; set; }
+
+    private List<string> _connectionConsole { get; set; } = new List<string>();
 
     private IMqttClient? mqttClient { get; set; }
 
@@ -145,21 +163,28 @@
                 await MqttClientConnection.Clean_Disconnect(mqttClient);
             mqttClient.Dispose();
         }
-        
+
         // Dispose of unmanaged resources.
         _editor.Dispose();
-        
+
         // Suppress finalization.
         GC.SuppressFinalize(this);
     }
 
-    private async Task SendMQTTMessage(string topic, string value)
+    private async void SendMessageToConsole()
+    {
+        _console.Add(_consoleInput is null ? "" : _consoleInput);
+        if (_consoleInput != null)
+            await SendMqttMessage("lab/", _consoleInput);
+    }
+
+    private async Task SendMqttMessage(string topic, string value)
     {
         if (mqttClient is not null)
             await MqttClientPublish.Publish_Application_Message(mqttClient, topic, value);
     }
 
-    private async Task SendMQTTMessage(MqttMessage message)
+    private async Task SendMqttMessage(MqttMessage message)
     {
         if (mqttClient is not null)
             await MqttClientPublish.Publish_Application_Message(mqttClient, message.Topic, message.Message);
@@ -177,7 +202,7 @@
             {
                 // DO YOUR WORK HERE!
                 // Need to implement responses
-                Console.WriteLine(ea.ApplicationMessage.PayloadSegment.ToString());
+                Console.WriteLine(System.Text.Encoding.UTF8.GetString(ea.ApplicationMessage.PayloadSegment));
                 await Task.Delay(1000, shutdownToken);
                 await ea.AcknowledgeAsync(shutdownToken);
                 // WARNING: If process failures are not transient the message will be retried on every restart of the client

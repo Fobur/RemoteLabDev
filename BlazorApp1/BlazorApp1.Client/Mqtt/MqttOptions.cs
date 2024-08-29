@@ -46,6 +46,8 @@ namespace BlazorApp1.Client.Mqtt
                     .Build();
         }
 
+
+
         public static MqttClientOptions TslOptions()
         {            
             SetSertificate();
@@ -66,6 +68,5 @@ namespace BlazorApp1.Client.Mqtt
                     .Build();
         }
 
-        
     }
 }
