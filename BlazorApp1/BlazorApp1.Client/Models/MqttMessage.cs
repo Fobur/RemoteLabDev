@@ -1,4 +1,4 @@
-﻿namespace BlazorApp1.Client.Mqtt
+﻿namespace BlazorApp1.Client.Models
 {
     public class MqttMessage
     {
