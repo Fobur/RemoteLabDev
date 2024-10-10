@@ -1,0 +1,63 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using BlazorApp1.Client.Models
+@inject DialogService DialogService
+@inject HttpClient HttpClient
+
+<RadzenTemplateForm TItem="AppointmentStand" Data="@model" Submit=@OnSubmit Culture="Thread.CurrentThread.CurrentUICulture">
+    <RadzenStack Gap="1rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Стенд" Style="width: 4rem;" />
+            <RadzenDropDown @bind-Value=@model.StandId Data=@stands Name="Stand" TextProperty="@nameof(Stand.Name)" ValueProperty="@nameof(Stand.Id)" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="Stand" Text="Необходимо выбрать стенд для бронирования" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Начало бронирования" Style="width: 4rem;" />
+            <RadzenDatePicker @bind-Value="@model.StartAppointment" Name="Start" ShowTime="true" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="Start" Text="Необходимо выбрать время начала бронирования" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Конец бронирования" Style="width: 4rem;" />
+            <RadzenDatePicker Name="End" @bind-Value="@model.EndAppointment" ShowTime="true" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="End" Text="Необходимо выбрать время конца бронирования" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Сохранить" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public int StandID { get; set; }
+    [Parameter]
+    public string? SchedulerID { get; set; }
+    [Parameter]
+    public DateTime StartAppointment { get; set; }
+    [Parameter]
+    public DateTime EndAppointment { get; set; }
+
+    private IEnumerable<Stand> stands { get; set; }
+
+    AppointmentStand model = new AppointmentStand();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        stands ??= await HttpClient.GetFromJsonAsync<Stand[]>("api/stands");
+    }
+
+    protected override void OnParametersSet()
+    {
+        model.StandId = StandID;
+        if (SchedulerID != null)
+            model.SchedulerId = SchedulerID;
+        model.StartAppointment = StartAppointment;
+        model.EndAppointment = EndAppointment;
+    }
+
+    void OnSubmit(AppointmentStand model)
+    {
+        DialogService.Close(model);
+    }
+}

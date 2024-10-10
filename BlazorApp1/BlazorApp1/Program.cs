@@ -2,20 +2,44 @@
 using BlazorApp1.Components;
 using BlazorApp1.Components.Account;
 using BlazorApp1.Data;
+using BlazorApp1.Data.Endpoints;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("ru-RU");
+CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
+CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ru-RU");
+Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
+Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru-RU");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddRadzenComponents();
+
+builder.Services.AddScoped<ThemeService>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingServerAuthenticationStateProvider>();
+builder.Services.AddScoped<DialogService>();
+builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped(sp =>
+    new HttpClient
+    {
+        BaseAddress = new Uri("https://localhost:7079/")
+    });
+builder.Services.AddScoped<HttpContextAccessor>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
@@ -24,6 +48,8 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
     builder.Configuration.GetValue<string>("DatabaseSettings:PostgressConnectionString") ?? throw new InvalidOperationException("Connection string not found.");
@@ -64,17 +90,22 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(BlazorApp1.Client._Imports).Assembly);
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+app.MapSchedulerEndpoints();
+app.UseRequestLocalization(new RequestLocalizationOptions()
+    .AddSupportedCultures("en-US", "ru-RU")
+    .AddSupportedUICultures("en-US", "ru-RU"));
 
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    var roles = BlazorApp1.Data.Roles.RoleNames;
+    var roles = Roles.RoleNames;
 
     foreach (var role in roles)
     {
@@ -99,7 +130,7 @@ using (var scope = app.Services.CreateScope())
         user.Name = "";
         user.Surname = "";
         user.Patronymic = "";
-        user.StudentGroup = new BlazorApp1.Models.StudentGroup(){ Name="", Description="", ID="0" };
+        user.StudentGroup = new BlazorApp1.Models.StudentGroup(){ Name="", Description="", Id="0" };
 
         await userManager.CreateAsync(user, password);
 

@@ -17,10 +17,25 @@ namespace BlazorApp1.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationUserStudentGroup", b =>
+                {
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("StudentGroup1Id")
+                        .HasColumnType("text");
+
+                    b.HasKey("ApplicationUserId", "StudentGroup1Id");
+
+                    b.HasIndex("StudentGroup1Id");
+
+                    b.ToTable("ApplicationUserStudentGroup");
+                });
 
             modelBuilder.Entity("BlazorApp1.Data.ApplicationUser", b =>
                 {
@@ -47,6 +62,11 @@ namespace BlazorApp1.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -58,6 +78,11 @@ namespace BlazorApp1.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
+                    b.Property<string>("Patronymic")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
@@ -66,6 +91,14 @@ namespace BlazorApp1.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
+
+                    b.Property<string>("StudentGroupId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -83,32 +116,204 @@ namespace BlazorApp1.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
+                    b.HasIndex("StudentGroupId");
+
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("BlazorApp1.Models.Equipment", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Description")
+                    b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.HasKey("ID");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("EquipmentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId");
 
                     b.ToTable("Equipment");
                 });
 
-            modelBuilder.Entity("BlazorApp1.Models.Stand", b =>
+            modelBuilder.Entity("BlazorApp1.Models.Organization", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string[]>("StandsId")
+                        .HasColumnType("text[]");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.OrganizationStand", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrganizationID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("StandId")
+                        .IsRequired()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationID");
+
+                    b.HasIndex("StandId");
+
+                    b.ToTable("OrganizationStands");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.ScheduledStand", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SchedulerId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("SessionEndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("SessionStartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("StandId")
+                        .IsRequired()
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchedulerId");
+
+                    b.HasIndex("StandId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScheduledStands");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Scheduler", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EndPeriodDatetime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("SessionDayOfWeek")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("SessionEndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("SessionStartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("StartPeriodDatetime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StudentGroupId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentGroupId");
+
+                    b.ToTable("Schedulers");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Service", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DockerPort")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ServiceTypeId")
+                        .IsRequired()
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StandId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TimeStartService")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("TimeStopService")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceTypeId");
+
+                    b.HasIndex("StandId");
+
+                    b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.ServiceType", b =>
+                {
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("DefaultTimeout")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DockerFilename")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceTypes");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Stand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AnsibleScript")
                         .IsRequired()
@@ -118,22 +323,43 @@ namespace BlazorApp1.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("EquipmentID")
-                        .HasColumnType("integer");
+                    b.Property<string[]>("EquipmentId")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StandsId")
                         .HasColumnType("text");
 
                     b.Property<string>("VideoUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("ID");
+                    b.HasKey("Id");
 
-                    b.HasIndex("EquipmentID");
+                    b.HasIndex("StandsId");
 
                     b.ToTable("Stand");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.StudentGroup", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StudentGroups");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -268,13 +494,114 @@ namespace BlazorApp1.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ApplicationUserStudentGroup", b =>
+                {
+                    b.HasOne("BlazorApp1.Data.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorApp1.Models.StudentGroup", null)
+                        .WithMany()
+                        .HasForeignKey("StudentGroup1Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BlazorApp1.Data.ApplicationUser", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.StudentGroup", "StudentGroup")
+                        .WithMany()
+                        .HasForeignKey("StudentGroupId");
+
+                    b.Navigation("StudentGroup");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Equipment", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.Stand", null)
+                        .WithMany("Equipment")
+                        .HasForeignKey("EquipmentId");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.OrganizationStand", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorApp1.Models.Stand", "Stand")
+                        .WithMany()
+                        .HasForeignKey("StandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Stand");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.ScheduledStand", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.Scheduler", "Scheduler")
+                        .WithMany()
+                        .HasForeignKey("SchedulerId");
+
+                    b.HasOne("BlazorApp1.Models.Stand", "Stand")
+                        .WithMany()
+                        .HasForeignKey("StandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorApp1.Data.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Scheduler");
+
+                    b.Navigation("Stand");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Scheduler", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.StudentGroup", "StudentGroup")
+                        .WithMany()
+                        .HasForeignKey("StudentGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StudentGroup");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Service", b =>
+                {
+                    b.HasOne("BlazorApp1.Models.ServiceType", "ServiceType")
+                        .WithMany()
+                        .HasForeignKey("ServiceTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorApp1.Models.Stand", "Stand")
+                        .WithMany()
+                        .HasForeignKey("StandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceType");
+
+                    b.Navigation("Stand");
+                });
+
             modelBuilder.Entity("BlazorApp1.Models.Stand", b =>
                 {
-                    b.HasOne("BlazorApp1.Models.Equipment", "Equipment")
-                        .WithMany()
-                        .HasForeignKey("EquipmentID");
-
-                    b.Navigation("Equipment");
+                    b.HasOne("BlazorApp1.Models.Organization", null)
+                        .WithMany("Stands")
+                        .HasForeignKey("StandsId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -326,6 +653,16 @@ namespace BlazorApp1.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Organization", b =>
+                {
+                    b.Navigation("Stands");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Models.Stand", b =>
+                {
+                    b.Navigation("Equipment");
                 });
 #pragma warning restore 612, 618
         }

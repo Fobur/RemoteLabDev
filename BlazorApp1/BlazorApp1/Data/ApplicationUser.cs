@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using BlazorApp1.Models;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlazorApp1.Data
 {
@@ -13,7 +14,9 @@ namespace BlazorApp1.Data
         public string? Surname { get; set; }
         [Required]
         public string? Patronymic { get; set; }
-        [Required]
+        
+        public string? StudentGroupId {  get; set; }
+        [ForeignKey(nameof(StudentGroupId))]
         public StudentGroup? StudentGroup { get; set; }
     }
 

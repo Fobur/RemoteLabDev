@@ -1,0 +1,138 @@
+﻿@page "/admin/users/create"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp1.Data
+@using BlazorApp1.Models
+@using BlazorApp1.Components.Account.Pages
+@inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Создать нового пользователя</PageTitle>
+
+<h1>Создать нового пользователя</h1>
+
+<h4>Пользователь</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="ApplicationUser" OnValidSubmit="AddUser" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="username" class="form-label">Ник:</label>
+                <InputText id="username" @bind-Value="ApplicationUser.UserName" class="form-control" />
+                <ValidationMessage For="() => ApplicationUser.UserName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль:</label>
+                <InputText id="password" @bind-Value="Password" class="form-control" />
+                <ValidationMessage For="() => Password" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="mail" class="form-label">Почта:</label>
+                <InputText id="mail" @bind-Value="ApplicationUser.Email" class="form-control" />
+                <ValidationMessage For="() => ApplicationUser.Email" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="role" class="form-label">Роль:</label>
+                <InputSelect id="role" @bind-Value="Role" class="form-control">
+                    @foreach (var role in DbFactory.CreateDbContext().Roles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Role" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Имя:</label>
+                <InputText id="name" @bind-Value="ApplicationUser.Name" class="form-control" />
+                <ValidationMessage For="() => ApplicationUser.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="surname" class="form-label">Фамиилия:</label>
+                <InputText id="surname" @bind-Value="ApplicationUser.Surname" class="form-control" />
+                <ValidationMessage For="() => ApplicationUser.Surname" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="patronymic" class="form-label">Отчество:</label>
+                <InputText id="patronymic" @bind-Value="ApplicationUser.Patronymic" class="form-control" />
+                <ValidationMessage For="() => ApplicationUser.Patronymic" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="studentgroup" class="form-label">Учебная группа:</label>
+                <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupId" class="form-control">
+                    @foreach (var group in studentGroups)
+                    {
+                        <option value="@group.Id">@group.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => ApplicationUser.StudentGroupId" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="admin/users">Назад к списку пользователей</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public ApplicationUser ApplicationUser { get; set; } = new();
+
+    [SupplyParameterFromForm]
+    public string Password { get; set; }
+
+    [SupplyParameterFromForm]
+    public string Role { get; set; }
+
+    public List<StudentGroup> studentGroups { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        studentGroups = context.StudentGroups.ToList();
+    }
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddUser()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (await context.Users.FirstOrDefaultAsync(x => x.Email == ApplicationUser.Email) == null)
+        {
+            var user = new ApplicationUser();
+            user.Email = ApplicationUser.Email;
+            user.UserName = ApplicationUser.UserName;
+            user.EmailConfirmed = true;
+            user.Name = ApplicationUser.Name;
+            user.Surname = ApplicationUser.Surname;
+            user.Patronymic = ApplicationUser.Patronymic;
+            user.EmailConfirmed = true;
+            user.StudentGroupId = ApplicationUser.StudentGroupId;
+
+            await UserManager.CreateAsync(user, Password);
+            var count = 0;
+            while (context.Users.FirstOrDefaultAsync(x => x.Email == ApplicationUser.Email) == null && count < 5)
+            {
+                count++;
+                Thread.Sleep(100);
+            }
+            await UserManager.AddToRoleAsync(user, Role);
+        }
+
+        NavigationManager.NavigateTo("/admin/users/");
+    }
+}

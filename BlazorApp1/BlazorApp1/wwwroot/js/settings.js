@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 
 // We use this shared JavaScript file as a simple way to have all demos
 // refer to the same settings, e.g., in terms of which server to connect
@@ -51,11 +51,7 @@
 // in the presented order. The first working server will be used for
 // the whole session.
 //
-var server = null;
-if(window.location.protocol === 'http:')
-	var server = "ws://" + "172.17.0.2" + ":8188";
-else
-var server = "wss://" + "172.17.0.2" + ":8188";
+var server = "https://10.40.81.71:8089/janus";
 
 // When creating a Janus object, we can also specify which STUN/TURN
 // servers we'd like to use to gather additional candidates. This is
@@ -81,4 +77,6 @@ var server = "wss://" + "172.17.0.2" + ":8188";
 // By default we leave the iceServers variable empty, which again means
 // janus.js will fallback to the Google STUN server by default:
 //
-var iceServers = null;
+//var iceServers = [{urls: "turn:10.40.81.71:5349", username: "username1", credential: "password1"}];
+var iceServers = [{ urls: "turn:212.193.88.198:5349", username: "62ec2158a8355a96bdfb61a6", credential: "TwKTvbCP8mu3g03+" }];
+//var iceServers = [{urls: "stun:212.193.88.194:8080"}];

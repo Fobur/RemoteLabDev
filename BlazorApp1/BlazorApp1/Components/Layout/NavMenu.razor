@@ -5,7 +5,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazorApp1</a>
+        <a class="navbar-brand" href="">IoTRemoteLab</a>
     </div>
 </div>
 
@@ -15,12 +15,7 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Главная
             </NavLink>
         </div>
 
@@ -41,10 +36,27 @@
                     </form>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="admin/users">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Пользователи
+                    <NavLink class="nav-link" href="stands/">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Стенды
                     </NavLink>
                 </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="schedule/">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Расписание
+                    </NavLink>
+                </div>
+                <AuthorizeView Roles="Admin" Context="_">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="admin/users">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Пользователи
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/admin/studentgroups">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>Группы
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
             </Authorized>
             <NotAuthorized>
                 <div class="nav-item px-3">

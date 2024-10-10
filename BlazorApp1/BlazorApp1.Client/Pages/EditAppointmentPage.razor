@@ -1,0 +1,63 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using BlazorApp1.Client.Models
+@using System.Text.Json.Serialization.Metadata
+@using System.Text.Json
+@using System.Text
+@using System.Web
+@inject DialogService DialogService
+@inject HttpClient HttpClient
+
+<RadzenTemplateForm TItem="AppointmentStand" Data="@model" Submit=@OnSubmit Culture="Thread.CurrentThread.CurrentUICulture">
+    <RadzenStack Gap="1rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Start" Style="width: 6rem;" />
+            <RadzenDatePicker @bind-Value="@model.StartAppointment" Name="Начало бронирования" ShowTime="true" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="Начало бронирования" Text="Необходимо выбрать время начала бронирования" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="End" Style="width: 6rem;" />
+            <RadzenDatePicker Name="Конец бронирования" @bind-Value="@model.EndAppointment" ShowTime="true" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="Конец бронирования" Text="Необходимо выбрать время конца бронирования" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Сохранить" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton ButtonType="ButtonType.Button" Click="x => { OnDelete(); }" Text="Удалить" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public AppointmentStand AppointmentStand { get; set; }
+
+    AppointmentStand model = new AppointmentStand();
+
+    protected override void OnParametersSet()
+    {
+        model = AppointmentStand;
+    }
+
+    async Task OnSubmit(AppointmentStand model)
+    {
+        if (model != null)
+        {
+            var response = await HttpClient.PutAsJsonAsync<AppointmentStand>("api/appointmentStands", model);
+            DialogService.Close(response);
+        }
+        DialogService.Close();
+    }
+
+    async Task OnDelete()
+    {
+        var uri = new UriBuilder(HttpClient.BaseAddress);
+        uri.Path = "api/appointmentStands";
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        query["id"] = model.Id;
+        uri.Query = query.ToString();
+        var response = await HttpClient.DeleteAsync(uri.Uri);
+        DialogService.Close(response);
+    }
+}

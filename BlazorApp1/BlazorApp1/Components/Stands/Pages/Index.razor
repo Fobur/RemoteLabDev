@@ -1,28 +1,35 @@
 ﻿@page "/stands"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
+@attribute [Authorize(Roles = "Admin, Student")]
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Список стендоа</PageTitle>
 
-<h1>Index</h1>
+<h1>Список стендов</h1>
 
-<p>
-    <a href="stands/create">Create New</a>
-</p>
+<AuthorizeView Roles="Admin">
+    <p>
+        <a href="stands/create">Создать новый стенд</a>
+    </p>
+</AuthorizeView>
 
 <QuickGrid Class="table" Items="DbFactory.CreateDbContext().Stand">
-    <PropertyColumn Property="stand => stand.Name" />
-    <PropertyColumn Property="stand => stand.Description" />
-    <PropertyColumn Property="stand => stand.VideoUrl" />
-    <PropertyColumn Property="stand => stand.AnsibleScript" />
+    <PropertyColumn Property="stand => stand.Name" Title="Название стенда"/>
+    <PropertyColumn Property="stand => stand.Description" Title="Описание"/>
+    <PropertyColumn Property="stand => stand.VideoUrl" Title="Ссылка на видеопоток"/>
+    <PropertyColumn Property="stand => stand.AnsibleScript" Title="Ansible скрипт"/>
 
     <TemplateColumn Context="stand">
-        <a href="@($"stands/edit?id={stand.ID}")">Edit</a> |
-        <a href="@($"stands/details?id={stand.ID}")">Details</a> |
-        <a href="@($"stands/delete?id={stand.ID}")">Delete</a> |
-        <a href="@($"stands/programming?id={stand.ID}")" data-enhance-nav="false">Code</a>
+        <AuthorizeView Roles="Admin">
+            <a href="@($"stands/edit?id={stand.Id}")">Редактировать</a> |
+            <a href="@($"stands/details?id={stand.Id}")">Детали</a> |
+            <a href="@($"stands/delete?id={stand.Id}")">Удалить</a> |
+        </AuthorizeView>
+        <a href="@($"stands/programming?id={stand.Id}")" data-enhance-nav="false">Код</a> | 
+        <a href="@($"schedule?id={stand.Id}")" data-enhance-nav="false">Забронировать</a>
     </TemplateColumn>
 </QuickGrid>

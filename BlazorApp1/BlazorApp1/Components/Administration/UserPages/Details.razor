@@ -8,20 +8,20 @@
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Подробности о пользователе</PageTitle>
 
-<h1>Details</h1>
+<h1>Подроьности о пользователе</h1>
 
 <div>
-    <h4>User</h4>
+    <h4>Пользователь</h4>
     <hr />
     @if (user is null)
     {
-        <p><em>Loading...</em></p>
+        <p><em>Загрузка...</em></p>
     }
     else {
         <dl class="row">
-            <dt class="col-sm-2">Username</dt>
+            <dt class="col-sm-2">Ник</dt>
             <dd class="col-sm-10">@user.UserName</dd>
             <dt class="col-sm-2">Фамилия</dt>
             <dd class="col-sm-10">@user.Email</dd>
@@ -31,10 +31,12 @@
             <dd class="col-sm-10">@user.Surname</dd>
             <dt class="col-sm-2">Отчетство</dt>
             <dd class="col-sm-10">@user.Patronymic</dd>
+            <dt class="col-sm-2">Учебная группа</dt>
+            <dd class="col-sm-10">@user.StudentGroup.Name</dd>
         </dl>
         <div>
-            <a href="@($"/admin/users/edit?id={user.Id}")">Edit</a> |
-            <a href="@($"/admin/users")">Back to List</a>
+            <a href="@($"/admin/users/edit?id={user.Id}")">Изменить</a> |
+            <a href="@($"/admin/users")">Назад к списку пользователей</a>
         </div>
     }
 </div>
@@ -48,7 +50,9 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        user = await context.Users.FirstOrDefaultAsync(m => m.Id == ID);
+        user = await context.Users
+        .Include(x => x.StudentGroup)
+        .FirstOrDefaultAsync(m => m.Id == ID);
         if (user is null)
         {
             NavigationManager.NavigateTo("notfound");

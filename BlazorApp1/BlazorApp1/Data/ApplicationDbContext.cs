@@ -31,6 +31,10 @@ namespace BlazorApp1.Data
             modelBuilder.Entity<ApplicationUser>()
                .Property(e => e.Patronymic)
                .HasMaxLength(250);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany<StudentGroup>()
+                .WithMany();
         }
     }
 }

@@ -12,15 +12,15 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Редактирование пользователя</PageTitle>
 
-<h1>Edit</h1>
+<h1>Редактирование пользователя</h1>
 
-<h4>User</h4>
+<h4>Пользователь</h4>
 <hr />
 @if (ApplicationUser == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Загрузка...</em></p>
 }
 else
 {
@@ -55,6 +55,16 @@ else
                     <InputText id="patronymic" @bind-Value="ApplicationUser.Patronymic" class="form-control" />
                     <ValidationMessage For="() => ApplicationUser.Patronymic" class="text-danger" />
                 </div>
+                <div class="mb-3">
+                    <label for="studentgroup" class="form-label">Учебная группа:</label>
+                    <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupId" class="form-control">
+                        @foreach (var group in studentGroups)
+                        {
+                            <option value="@group.Id">@group.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => ApplicationUser.StudentGroupId" class="text-danger" />
+                </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
@@ -62,37 +72,27 @@ else
 }
 
 <div>
-    <a href="admin/users">Back to List</a>
+    <a href="admin/users">Назад к списку пользователей</a>
 </div>
 
 @code {
     [SupplyParameterFromQuery]
-    public string ID { get; set; }
-
+    public string? ID { get; set; }
 
     [SupplyParameterFromForm]
     private ApplicationUser? ApplicationUser { get; set; }
 
+    public List<StudentGroup>? studentGroups { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        ApplicationUser ??= await context.Users.FirstOrDefaultAsync(m => m.Id == ID);
+        ApplicationUser ??= await context.Users.Include(x => x.StudentGroup).FirstOrDefaultAsync(m => m.Id == ID);
+        studentGroups ??= context.StudentGroups.ToList();
         if (ApplicationUser is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
-    }
-
-    private UserEditModel FillInput(ApplicationUser user)
-    {
-        return new UserEditModel()
-        {
-            Username = user.UserName,
-            Email = user.Email,
-            Name = user.Name,
-            Surname = user.Surname,
-            Patronymic = user.Patronymic
-        };
     }
 
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -100,8 +100,6 @@ else
     public async Task UpdateUser()
     {
         using var context = DbFactory.CreateDbContext();
-        context.Attach(ApplicationUser!).State = EntityState.Modified;
-         
         var user = await UserManager.FindByIdAsync(ApplicationUser.Id);
 
         user.Email = ApplicationUser.Email;
@@ -109,6 +107,7 @@ else
         user.Name = ApplicationUser.Name;
         user.Surname = ApplicationUser.Surname;
         user.Patronymic = ApplicationUser.Patronymic;
+        user.StudentGroupId = ApplicationUser.StudentGroupId;
 
         try
         {

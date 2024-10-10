@@ -1,0 +1,140 @@
+﻿@page "/schedule"
+@using BlazorApp1.Client.Models
+@using Microsoft.AspNetCore.Http
+@using Radzen.Blazor
+@using Radzen
+@using System.Globalization
+@inject DialogService DialogService
+@inject HttpClient HttpClient
+@rendermode InteractiveWebAssembly
+
+<RadzenComponents />
+<RadzenTheme Theme="material" @rendermode="InteractiveAuto" />
+<PageTitle>Расписание</PageTitle>
+
+<h1>Расписание</h1>
+
+<RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="AppointmentStand" Data="standAppointments"
+                 StartProperty="StartAppointment" EndProperty="EndAppointment" TextProperty="Text"
+                 SelectedIndex="2" Culture=@_culture
+                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
+                 AppointmentMove=@OnAppointmentMove>
+    <RadzenDayView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" Text="День"/>
+    <RadzenWeekView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" Text="Неделя"/>
+    <RadzenMonthView Text="Месяц"/>
+</RadzenScheduler>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? StandID { get; set; }
+    CultureInfo _culture = CultureInfo.GetCultureInfo("ru-RU");
+
+    RadzenScheduler<AppointmentStand> scheduler;
+    IList<AppointmentStand> standAppointments { get; set; }
+    string? userId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId ??= await HttpClient.GetFromJsonAsync<string>("api/user");
+        standAppointments ??= await UpdateData();
+        await base.OnInitializedAsync();
+    }
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+
+        // Highlight working hours (9-18)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 19)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+        if (args.View.Text != "Year")
+        {
+            AppointmentStand data = await DialogService.OpenAsync<AddAppointmentPage>("Add Appointment",
+                new Dictionary<string, object> {{ "StandID", StandID },
+                { "StartAppointment", args.Start },
+                { "EndAppointment", args.End } });
+            if (data != null)
+            {
+                // Add to db
+                var response = await HttpClient.PostAsJsonAsync<AppointmentStand>("api/appointmentStands", data);
+                if (response.IsSuccessStatusCode)
+                {
+                    // Either call the Reload method or reassign the Data property of the Scheduler
+                    standAppointments = await UpdateData();
+                    await scheduler.Reload();
+                }
+                else
+                {
+                    var error = await response.Content.ReadFromJsonAsync<string>();
+                    if (error != null) await DialogService.Alert(error, "Can't add appointment", new AlertOptions() { OkButtonText = "Ok" });
+                }
+            }
+        }
+    }
+
+    private async Task<IList<AppointmentStand>> UpdateData()
+    {
+        var stands = await HttpClient.GetFromJsonAsync<AppointmentStand[]>("api/appointmentStands");
+        return stands;
+    }
+
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<AppointmentStand> args)
+    {
+
+        var copy = new AppointmentStand
+            {
+                Id = args.Data.Id,
+                StandId = args.Data.StandId,
+                SchedulerId = args.Data.SchedulerId,
+                StartAppointment = args.Data.StartAppointment,
+                EndAppointment = args.Data.EndAppointment,
+                UserId = userId
+            };
+
+        HttpResponseMessage response = await DialogService.OpenAsync<EditAppointmentPage>("Edit Appointment",
+            new Dictionary<string, object> { { "AppointmentStand", copy } });
+
+        if (response != null && !((HttpResponseMessage)response).IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadFromJsonAsync<string>();
+            if (error != null) await DialogService.Alert(error, $"Can't modify appointment", new AlertOptions() { OkButtonText = "Ok" });
+        }
+
+        standAppointments = await UpdateData();
+
+        await scheduler.Reload();
+    }
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<AppointmentStand> args)
+    {
+        // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
+        if (args.Data.UserId == userId)
+        {
+            args.Attributes["style"] = "background: red";
+        }
+    }
+
+    async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
+    {
+        var draggedAppointment = standAppointments.FirstOrDefault(x => x == args.Appointment.Data);
+
+        if (draggedAppointment != null)
+        {
+            draggedAppointment.StartAppointment = draggedAppointment.StartAppointment + args.TimeSpan;
+
+            draggedAppointment.EndAppointment = draggedAppointment.EndAppointment + args.TimeSpan;
+
+            await scheduler.Reload();
+        }
+    }
+}
