@@ -12,15 +12,15 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Редактирование пользователя</PageTitle>
 
-<h1>Edit</h1>
+<h1>Редактирование пользователя</h1>
 
-<h4>User</h4>
+<h4>Пользователь</h4>
 <hr />
 @if (ApplicationUser == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Загрузка...</em></p>
 }
 else
 {
@@ -57,13 +57,13 @@ else
                 </div>
                 <div class="mb-3">
                     <label for="studentgroup" class="form-label">Учебная группа:</label>
-                    <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupID" class="form-control">
+                    <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupId" class="form-control">
                         @foreach (var group in studentGroups)
                         {
-                            <option value="@group.ID">@group.Name</option>
+                            <option value="@group.Id">@group.Name</option>
                         }
                     </InputSelect>
-                    <ValidationMessage For="() => ApplicationUser.StudentGroupID" class="text-danger" />
+                    <ValidationMessage For="() => ApplicationUser.StudentGroupId" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
@@ -72,7 +72,7 @@ else
 }
 
 <div>
-    <a href="admin/users">Back to List</a>
+    <a href="admin/users">Назад к списку пользователей</a>
 </div>
 
 @code {
@@ -107,7 +107,7 @@ else
         user.Name = ApplicationUser.Name;
         user.Surname = ApplicationUser.Surname;
         user.Patronymic = ApplicationUser.Patronymic;
-        user.StudentGroupID = ApplicationUser.StudentGroupID;
+        user.StudentGroupId = ApplicationUser.StudentGroupId;
 
         try
         {

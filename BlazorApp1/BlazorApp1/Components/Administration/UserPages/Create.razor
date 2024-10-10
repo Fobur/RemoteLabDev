@@ -18,11 +18,11 @@
 
 @inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Создать нового пользователя</PageTitle>
 
-<h1>Create</h1>
+<h1>Создать нового пользователя</h1>
 
-<h4>User</h4>
+<h4>Пользователь</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -71,21 +71,21 @@
             </div>
             <div class="mb-3">
                 <label for="studentgroup" class="form-label">Учебная группа:</label>
-                <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupID" class="form-control">
+                <InputSelect id="studentgroup" @bind-Value="ApplicationUser.StudentGroupId" class="form-control">
                     @foreach (var group in studentGroups)
                     {
-                        <option value="@group.ID">@group.Name</option>
+                        <option value="@group.Id">@group.Name</option>
                     }
                 </InputSelect>
-                <ValidationMessage For="() => ApplicationUser.StudentGroupID" class="text-danger" />
+                <ValidationMessage For="() => ApplicationUser.StudentGroupId" class="text-danger" />
             </div>
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary">Создать</button>
         </EditForm>
     </div>
 </div>
 
 <div>
-    <a href="admin/users">Back to List</a>
+    <a href="admin/users">Назад к списку пользователей</a>
 </div>
 
 @code {
@@ -116,13 +116,20 @@
             var user = new ApplicationUser();
             user.Email = ApplicationUser.Email;
             user.UserName = ApplicationUser.UserName;
+            user.EmailConfirmed = true;
             user.Name = ApplicationUser.Name;
             user.Surname = ApplicationUser.Surname;
             user.Patronymic = ApplicationUser.Patronymic;
             user.EmailConfirmed = true;
-            user.StudentGroupID = ApplicationUser.StudentGroupID;
+            user.StudentGroupId = ApplicationUser.StudentGroupId;
 
             await UserManager.CreateAsync(user, Password);
+            var count = 0;
+            while (context.Users.FirstOrDefaultAsync(x => x.Email == ApplicationUser.Email) == null && count < 5)
+            {
+                count++;
+                Thread.Sleep(100);
+            }
             await UserManager.AddToRoleAsync(user, Role);
         }
 

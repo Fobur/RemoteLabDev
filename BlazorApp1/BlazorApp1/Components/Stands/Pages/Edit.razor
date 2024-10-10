@@ -1,19 +1,21 @@
 ﻿@page "/stands/edit"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Редактировать стенд</PageTitle>
 
-<h1>Edit</h1>
+<h1>Редактировать стенд</h1>
 
-<h4>Stand</h4>
+<h4>Стенд</h4>
 <hr />
 @if(Stand == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Загрузка...</em></p>
 }
 else
 {
@@ -22,35 +24,35 @@ else
             <EditForm method="post" Model="Stand" OnValidSubmit="UpdateStand" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
-                <input type="hidden" name="Stand.ID" value="@Stand.ID" />
+                <input type="hidden" name="Stand.ID" value="@Stand.Id" />
                 <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
+                    <label for="name" class="form-label">Название стенда:</label>
                     <InputText id="name" @bind-Value="Stand.Name" class="form-control" />
                     <ValidationMessage For="() => Stand.Name" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description:</label>
+                    <label for="description" class="form-label">Описание:</label>
                     <InputText id="description" @bind-Value="Stand.Description" class="form-control" />
                     <ValidationMessage For="() => Stand.Description" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="videourl" class="form-label">VideoUrl:</label>
+                    <label for="videourl" class="form-label">Ссылка на видеопоток:</label>
                     <InputText id="videourl" @bind-Value="Stand.VideoUrl" class="form-control" />
                     <ValidationMessage For="() => Stand.VideoUrl" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="ansiblescript" class="form-label">AnsibleScript:</label>
+                    <label for="ansiblescript" class="form-label">Ansible скрипт:</label>
                     <InputText id="ansiblescript" @bind-Value="Stand.AnsibleScript" class="form-control" />
                     <ValidationMessage For="() => Stand.AnsibleScript" class="text-danger" />
                 </div>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
             </EditForm>
         </div>
     </div>
 }
 
 <div>
-    <a href="/stands">Back to List</a>
+    <a href="/stands">Назад к списку стендов </a>
 </div>
 
 @code {
@@ -63,7 +65,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        Stand ??= await context.Stand.FirstOrDefaultAsync(m => m.ID == ID);
+        Stand ??= await context.Stand.FirstOrDefaultAsync(m => m.Id == ID);
         if (Stand is null)
         {
             NavigationManager.NavigateTo("notfound");
@@ -83,7 +85,7 @@ else
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!StandExists(Stand!.ID))
+            if (!StandExists(Stand!.Id))
             {
                 NavigationManager.NavigateTo("notfound");
             }
@@ -99,6 +101,6 @@ else
     bool StandExists(int id)
     {
         using var context = DbFactory.CreateDbContext();
-        return context.Stand.Any(e => e.ID == id);
+        return context.Stand.Any(e => e.Id == id);
     }
 }

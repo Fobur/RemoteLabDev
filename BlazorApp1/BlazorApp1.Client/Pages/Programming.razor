@@ -7,49 +7,83 @@
 @using MQTTnet
 @using Mqtt
 @using MQTTnet.Client
+@using Radzen
+@using Radzen.Blazor
+@using static BlazorApp1.Client.Models.Extensions
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
 <PageTitle>Code</PageTitle>
+<RadzenTheme Theme="material" @rendermode="InteractiveAuto" />
 
 <head>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
 </head>
 
 <h1>Программирование стенда</h1>
-<div class="container">
+<div class="container-fluid">
     <div class="row" style="align-content:flex-start">
         <div class="col-md-4">
-            <div class="btn-group btn-group-sm">
+            <div class="row-md-6">
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-primary" id="start-stream" @onclick=StartStream>Получить трансляцию</button>
-                    <button class="btn btn-secondary" id="End-stream" @onclick=StopStream>Остановить трансляцию</button>
-                </div>
-            </div>
-            
-            <div class="container card" id="streams">
-                <div class="row hide" id="info">
-                    <div class="panel panel-default">
-                        <div class="panel-heading" style="font-size:large;">
-                            <h3 class="panel-title"><i class="fa fa-info-circle"></i></h3>
-                        </div>
-                        <div class="panel-body">
-                            <pre id="metadata" style="word-break: break-word;"></pre>
-                        </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-primary" id="start-stream" @onclick=StartStream>Получить трансляцию</button>
+                        <button class="btn btn-secondary" id="End-stream" @onclick=StopStream>Остановить трансляцию</button>
                     </div>
                 </div>
-                <div class="col-md" id="videos">
+                <div class="container" id="streams">
+                    <div class="row hide" id="info">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" style="font-size:large;">
+                                <h3 class="panel-title"><i class="fa fa-info-circle"></i></h3>
+                            </div>
+                            <div class="panel-body">
+                                <pre id="metadata" style="word-break: break-word;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md" id="videos">
+                    </div>
                 </div>
             </div>
-            <div class="card" style="vertical-align:bottom;">
-                <ul class="list-group list-group-flush" style="min-height: 10rem; max-height: 10rem; overflow: auto; align-items:normal;">
-                    @foreach (var logEntry in _connectionConsole)
-                    {
-                        <li class="list-group-item">@logEntry</li>
-                    }
-                </ul>
+            <div class="row-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        LED-ы
+                    </div>
+                    <div class="btn-toolbar" style="height:4.3rem;">
+                        @foreach (var led in standLEDs)
+                        {
+                            <span class="@led.GetClasses" >@led.McuPort</span>
+                        }
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        Кнопки
+                    </div>
+                    <div class="btn-group">
+                        @foreach (var btn in standButtons)
+                        {
+                            <button type="button" class="btn btn-secondary" @onclick="@((args) => StandButtonClicked(args, @btn))">@btn.McuPort</button>
+                        }
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        Интенсивность света
+                    </div>
+                    <div class="rz-p-4 rz-text-align-center">
+                        <RadzenSlider @bind-Value=@lightIntensity Change="@(args => ChangeLight(args))" TValue="int" Min="0" Max="100" />
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-lg-8">
+            <div class="btn-group btn-group-sm" style="align-self:end;">
+                <button class="btn btn-primary" id="compile" @onclick="SendCode">Скомпилировать и отправить</button>
+                <InputFile OnChange="LoadFiles">Выбрать файл и отправить</InputFile>
+            </div>
             <div>
                 <StandaloneCodeEditor @ref="_editor"
                                       Id="code-editor"
@@ -57,10 +91,17 @@
             </div>
             <div class="row-md">
                 <div class="card">
-                    <div class="card-header">
-                        Console
+                    <div class="card-header container-fluid">
+                        <div class="row">
+                            <div class="col-md-10">
+                                Консоль
+                            </div>
+                            <div class="col-md-2 float-right">
+                                <button class="bt btn-outline-secondary" type="button" style="height: 100%" @onclick="() => _console.Clear()">Очистить консоль</button>
+                            </div>
+                        </div>                        
                     </div>
-                    <ul class="list-group list-group-flush" style="min-height: 7rem; max-height: 12rem; overflow: auto; align-items:normal;">
+                    <ul class="list-group list-group-flush code-console">
                         @foreach (var logEntry in _console)
                         {
                             <li class="list-group-item">@logEntry</li>
@@ -69,12 +110,23 @@
                     <div class="input-group mb3">
                         <input type="text" class="form-control" placeholder="" id="console_input" @bind-value="_consoleInput" />
                         <div class="input-group-prepend">
-                            <button class="bt btn-outline-secondary" type="button" @onclick=@SendMessageToConsole>Отправить в консоль</button>
+                            <button class="bt btn-outline-secondary" type="button" style="height: 100%" @onclick=@SendMessageToConsole>Отправить в консоль</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="card" style="vertical-align:bottom;">
+        <div class="card-header" @onclick=@FlipDebugConsole>
+            Отладочная консоль
+        </div>
+        <ul class="list-group list-group-flush connection-console" hidden=@debugConsoleIsHidden>
+            @foreach (var logEntry in _debugConsole)
+            {
+                <li class="list-group-item">@logEntry</li>
+            }
+        </ul>
     </div>
 </div>
 
@@ -82,20 +134,46 @@
 @code {
     private string _defaultValue = "";
     private StandaloneEditorConstructionOptions _defaultOptions;
-    private IJSObjectReference? _module;
 
     [System.Diagnostics.CodeAnalysis.AllowNull]
     private StandaloneCodeEditor _editor;
 
-    private List<string> _console { get; set; } = new List<string>();
+    private List<StandButton> standButtons { get; set; }
+    private List<StandLED> standLEDs { get; set; }
+    private List<StandLever> standLevers { get; set; }
+    private List<StandSlider> standSliders { get; set; }
+    private int lightIntensity { get; set; }
+
+    private ConcurrentLinkedList<string> _console { get; set; } = new ConcurrentLinkedList<string>();
     private string? _consoleInput { get; set; }
 
-    private List<string> _connectionConsole { get; set; } = new List<string>();
+    private bool debugConsoleIsHidden { get; set; } = true;
+    private static ConcurrentLinkedList<string> _debugConsole { get; set; } = new ConcurrentLinkedList<string>();
 
     private IMqttClient? mqttClient { get; set; }
 
     [SupplyParameterFromQuery]
     public int ID { get; set; }
+
+    private void FlipDebugConsole()
+    {
+        debugConsoleIsHidden = !debugConsoleIsHidden;
+    }
+
+    private async void StandButtonClicked(EventArgs args, StandButton btn)
+    {
+        if (mqttClient != null)
+        {
+            await SendMqttMessage(btn.GetTopicToSendMqtt(ID), "0");
+            await Task.Delay(1000);
+            await SendMqttMessage(btn.GetTopicToSendMqtt(ID), "1");
+        }
+    }
+
+    //private async Task<List<IStandController>> GetStandControllersFromDb(int standId)
+    //{
+    //    return new List<IStandController>();
+    //}
 
     public Programming()
     {
@@ -109,6 +187,74 @@
                 RenderFinalNewline = "on",
                 SelectOnLineNumbers = true
             };
+        //var standControllers = await GetStandControllersFromDb(ID);
+        //
+        //standButtons = standControllers
+        //    .Where(sc => sc.StandControllerType == StandControllerTypes.Button)
+        //    .Select(sc => (StandButton)sc)
+        //    .ToList();
+        //standLEDs = standControllers
+        //    .Where(sc => sc.StandControllerType == StandControllerTypes.LED)
+        //    .Select(sc => (StandLED)sc)
+        //    .ToList();
+        //standLevers = standControllers
+        //    .Where(sc => sc.StandControllerType == StandControllerTypes.Lever)
+        //    .Select(sc => (StandLever)sc)
+        //    .ToList();
+        //standSliders = standControllers
+        //    .Where(sc => sc.StandControllerType == StandControllerTypes.Slider)
+        //    .Select(sc => (StandSlider)sc)
+        //    .ToList(); ;
+
+        standButtons = new List<StandButton> { 
+            new StandButton(StandControllerTypes.Button, "PA_13"),
+            new StandButton(StandControllerTypes.Button, "PA_14"),
+            new StandButton(StandControllerTypes.Button, "PA_15"),
+            new StandButton(StandControllerTypes.Button, "PC_13"),
+            new StandButton(StandControllerTypes.Button, "PC_14"),
+            new StandButton(StandControllerTypes.Button, "PC_15") };
+        standLEDs = new List<StandLED> { 
+            new StandLED(StandControllerTypes.LED, "PA_5"),
+            new StandLED(StandControllerTypes.LED, "PA_6"),
+            new StandLED(StandControllerTypes.LED, "PA_7"),
+            new StandLED(StandControllerTypes.LED, "PC_5"),
+            new StandLED(StandControllerTypes.LED, "PC_6"),
+            new StandLED(StandControllerTypes.LED, "PC_7")};
+        standLevers = new List<StandLever> { };
+        standSliders = new List<StandSlider> { };
+    }
+
+    private long maxFileSize = 1024 * 15;
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        //Implement file save and send
+        try
+        {
+            var trustedFileName = Path.GetRandomFileName();
+            var path = Path.Combine("~", "unsafe_uploads",
+                trustedFileName);
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await e.File.OpenReadStream(maxFileSize).CopyToAsync(fs);
+            //Send file
+        }
+        catch
+        {
+
+        }
+        await SendMqttMessage(new MqttMessage($"/lab/stand/{ID}/firmware/file",""));
+    }
+
+    private async void SendCode()
+    {
+        var code = await _editor.GetValue();
+        await SendMqttMessage($"/lab/stand/{ID}/firmware/code", code);
+    }
+
+    private async void ChangeLight(int newIntensity)
+    {
+        await SendMqttMessage($"/lab/stand/{ID}/light", newIntensity.ToString());
     }
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneDiffEditor editor)
@@ -116,17 +262,36 @@
         return _defaultOptions;
     }
 
-    public void InitJanus()
+    public static void LogDebugMessage(string message)
     {
-        JS.InvokeVoidAsync("startJanusStreamModule");
+        _debugConsole.Add(message);
     }
 
-    public void StartStream()
+    private void InitJanus()
     {
-        JS.InvokeVoidAsync("startStream", ID);
+        try
+        {
+            JS.InvokeVoidAsync("startJanusStreamModule");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
     }
 
-    public async Task StopStream()
+    private void StartStream()
+    {
+        try
+        {
+            JS.InvokeVoidAsync("startStream", ID);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task StopStream()
     {
         await JS.InvokeVoidAsync("stopStream");
     }
@@ -147,9 +312,12 @@
         {
             mqttClient ??= new MqttFactory().CreateMqttClient();
             //await MqttClientConnection.Connect_Client_Using_WebSockets(mqttClient);
-            await MqttClientConnection.Connect_Client_Using_WebSocketsTls(mqttClient);
+            await MqttClientConnection.ConnectClientUsingWebSocketsTls(mqttClient);
             //await MqttClientConnection.Connect_Client_Using_TLS_1_2(mqttClient);
-            await MqttSubscribe.Subscribe_Topic(mqttClient, "lab/");
+            await MqttSubscribe.Subscribe_Topic(mqttClient, $"/lab/stand/{ID}/serial/in");
+            await MqttSubscribe.Subscribe_Topic(mqttClient, $"/lab/stand/{ID}/debug/upload");
+            foreach (var led in standLEDs)
+                await MqttSubscribe.Subscribe_Topic(mqttClient, $"/lab/stand/{ID}/gpio/input/{led.McuPort}");
             ConcurrentProcessingDisableAutoAcknowledge(CancellationToken.None, mqttClient);
         }
     }
@@ -162,6 +330,7 @@
             if (mqttClient.IsConnected)
                 await MqttClientConnection.Clean_Disconnect(mqttClient);
             mqttClient.Dispose();
+            _debugConsole.Clear();
         }
 
         // Dispose of unmanaged resources.
@@ -173,9 +342,14 @@
 
     private async void SendMessageToConsole()
     {
-        _console.Add(_consoleInput is null ? "" : _consoleInput);
+        LogConsoleMessage(_consoleInput is null ? "" : _consoleInput);
         if (_consoleInput != null)
-            await SendMqttMessage("lab/", _consoleInput);
+            await SendMqttMessage($"/lab/stand/{ID}/serial/out", _consoleInput);
+    }
+
+    public void LogConsoleMessage(string msg)
+    {
+        _console.Add(msg is null ? "" : msg);
     }
 
     private async Task SendMqttMessage(string topic, string value)
@@ -192,7 +366,7 @@
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor) => _defaultOptions;
 
-    public static void ConcurrentProcessingDisableAutoAcknowledge(CancellationToken shutdownToken, IMqttClient mqttClient)
+    public void ConcurrentProcessingDisableAutoAcknowledge(CancellationToken shutdownToken, IMqttClient mqttClient)
     {
         mqttClient.ApplicationMessageReceivedAsync += ea =>
         {
@@ -200,11 +374,19 @@
 
             async Task ProcessAsync()
             {
-                // DO YOUR WORK HERE!
                 // Need to implement responses
-                Console.WriteLine(System.Text.Encoding.UTF8.GetString(ea.ApplicationMessage.PayloadSegment));
-                await Task.Delay(1000, shutdownToken);
+                var msg = System.Text.Encoding.UTF8.GetString(ea.ApplicationMessage.PayloadSegment);
+                var topic = ea.ApplicationMessage.Topic.Split('/').Skip(4).ToArray();
+
+                if (topic.LastOrDefault("") == "upload")
+                    LogDebugMessage(msg);
+                else if (topic.Length == 2 && topic[0] == "serial" && topic[1] == "in")
+                    LogConsoleMessage(FromStand(msg));
+                else if (topic.Length == 3 && topic[0] == "gpio" && topic[1] == "input")
+                    FlipLed(topic[2], int.Parse(msg) == 1 ? true : false);
+
                 await ea.AcknowledgeAsync(shutdownToken);
+                await InvokeAsync(StateHasChanged);
                 // WARNING: If process failures are not transient the message will be retried on every restart of the client
                 //          A failed message will not be dispatched again to the client as Mqtt does not have a NACK packet to let
                 //          the broker know processing failed
@@ -217,4 +399,8 @@
             return Task.CompletedTask;
         };
     }
+    private void FlipLed(string mcuPort, bool value) => standLEDs.Where(led => led.McuPort.Equals(mcuPort)).FirstOrDefault()!.IsOn = value;
+
+    private string FromStand(string msg) => $"{DateTime.Now.ToString("HH:mm:ss")} Стенд: {msg}";
+    private string FromUser(string msg) => $"{DateTime.Now.ToString("HH:mm:ss")} Пользователь: {msg}";
 }

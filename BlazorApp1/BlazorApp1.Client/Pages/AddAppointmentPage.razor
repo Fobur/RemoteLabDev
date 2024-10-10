@@ -4,25 +4,25 @@
 @inject DialogService DialogService
 @inject HttpClient HttpClient
 
-<RadzenTemplateForm TItem="AppointmentStand" Data="@model" Submit=@OnSubmit>
+<RadzenTemplateForm TItem="AppointmentStand" Data="@model" Submit=@OnSubmit Culture="Thread.CurrentThread.CurrentUICulture">
     <RadzenStack Gap="1rem">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-            <RadzenLabel Text="Stand" Style="width: 4rem;" />
-            <RadzenDropDown @bind-Value=@model.StandID Data=@stands Name="Stand" TextProperty="@nameof(Stand.Name)" ValueProperty="@nameof(Stand.ID)" Style="width: 12rem;" />
-            <RadzenRequiredValidator Component="Stand" Text="Stand is required" />
+            <RadzenLabel Text="Стенд" Style="width: 4rem;" />
+            <RadzenDropDown @bind-Value=@model.StandId Data=@stands Name="Stand" TextProperty="@nameof(Stand.Name)" ValueProperty="@nameof(Stand.Id)" Style="width: 12rem;" />
+            <RadzenRequiredValidator Component="Stand" Text="Необходимо выбрать стенд для бронирования" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-            <RadzenLabel Text="Start" Style="width: 4rem;" />
+            <RadzenLabel Text="Начало бронирования" Style="width: 4rem;" />
             <RadzenDatePicker @bind-Value="@model.StartAppointment" Name="Start" ShowTime="true" Style="width: 12rem;" />
-            <RadzenRequiredValidator Component="Start" Text="Start is required" />
+            <RadzenRequiredValidator Component="Start" Text="Необходимо выбрать время начала бронирования" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-            <RadzenLabel Text="End" Style="width: 4rem;" />
+            <RadzenLabel Text="Конец бронирования" Style="width: 4rem;" />
             <RadzenDatePicker Name="End" @bind-Value="@model.EndAppointment" ShowTime="true" Style="width: 12rem;" />
-            <RadzenRequiredValidator Component="End" Text="End is required" />
+            <RadzenRequiredValidator Component="End" Text="Необходимо выбрать время конца бронирования" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Сохранить" />
         </RadzenStack>
     </RadzenStack>
 </RadzenTemplateForm>
@@ -49,9 +49,9 @@
 
     protected override void OnParametersSet()
     {
-        model.StandID = StandID;
+        model.StandId = StandID;
         if (SchedulerID != null)
-            model.SchedulerID = SchedulerID;
+            model.SchedulerId = SchedulerID;
         model.StartAppointment = StartAppointment;
         model.EndAppointment = EndAppointment;
     }

@@ -8,16 +8,16 @@ namespace BlazorApp1.Models
     public class ScheduledStand
     {
         [Key]
-        public string? ID { get; set; }
-        public int? StandID { get; set; }
-        [Required, ForeignKey(nameof(StandID))]
+        public string? Id { get; set; }
+        public int? StandId { get; set; }
+        [Required, ForeignKey(nameof(StandId))]
         public Stand? Stand { get; set; }
 
-        public string? SchedulerID { get; set; }
-        [ForeignKey(nameof(SchedulerID))]
+        public string? SchedulerId { get; set; }
+        [ForeignKey(nameof(SchedulerId))]
         public Scheduler? Scheduler { get; set; }
-        public string? UserID { get; set; }
-        [ForeignKey(nameof(UserID))]
+        public string? UserId { get; set; }
+        [ForeignKey(nameof(UserId))]
         public ApplicationUser? User { get; set; }
         [Required]
         public DateTimeOffset SessionStartTime { get; set; }
@@ -28,12 +28,12 @@ namespace BlazorApp1.Models
         {
             return new ScheduledStand
             {
-                ID = stand.ID,
-                StandID = stand.StandID,
-                SchedulerID = stand.SchedulerID,
-                UserID = stand.UserID,
-                SessionStartTime = stand.StartAppointment.ToUniversalTime(),
-                SessionEndTime = stand.EndAppointment.ToUniversalTime()
+                Id = stand.Id,
+                StandId = stand.StandId,
+                SchedulerId = stand.SchedulerId,
+                UserId = stand.UserId,
+                SessionStartTime = TimeZoneInfo.ConvertTimeToUtc(stand.StartAppointment, TimeZoneInfo.Local),
+                SessionEndTime = TimeZoneInfo.ConvertTimeToUtc(stand.EndAppointment, TimeZoneInfo.Local)
             };
         }
     }

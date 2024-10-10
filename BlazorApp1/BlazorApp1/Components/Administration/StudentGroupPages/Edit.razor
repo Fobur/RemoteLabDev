@@ -1,19 +1,21 @@
 ﻿@page "/admin/studentGroups/edit"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Редактирование учебной группы</PageTitle>
 
-<h1>Edit</h1>
+<h1>Реактирование учебной группы</h1>
 
-<h4>StudentGroup</h4>
+<h4>Учебная группа</h4>
 <hr />
 @if (StudentGroup is null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Загрузка...</em></p>
 }
 else
 {
@@ -22,25 +24,25 @@ else
             <EditForm method="post" Model="StudentGroup" OnValidSubmit="UpdateStudentGroup" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
-                <input type="hidden" name="StudentGroup.ID" value="@StudentGroup.ID" />
+                <input type="hidden" name="StudentGroup.ID" value="@StudentGroup.Id" />
                 <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
+                    <label for="name" class="form-label">Название группы:</label>
                     <InputText id="name" @bind-Value="StudentGroup.Name" class="form-control" />
                     <ValidationMessage For="() => StudentGroup.Name" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description:</label>
+                    <label for="description" class="form-label">Описание:</label>
                     <InputText id="description" @bind-Value="StudentGroup.Description" class="form-control" />
                     <ValidationMessage For="() => StudentGroup.Description" class="text-danger" />
                 </div>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
             </EditForm>
         </div>
     </div>
 }
 
 <div>
-    <a href="/admin/studentgroups">Back to List</a>
+    <a href="/admin/studentgroups">Назад к списку учебных групп</a>
 </div>
 
 @code {
@@ -53,7 +55,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        StudentGroup ??= await context.StudentGroups.FirstOrDefaultAsync(m => m.ID == ID);
+        StudentGroup ??= await context.StudentGroups.FirstOrDefaultAsync(m => m.Id == ID);
 
         if (StudentGroup is null)
         {
@@ -74,7 +76,7 @@ else
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!StudentGroupExists(StudentGroup!.ID))
+            if (!StudentGroupExists(StudentGroup!.Id))
             {
                 NavigationManager.NavigateTo("notfound");
             }
@@ -90,6 +92,6 @@ else
     bool StudentGroupExists(string id)
     {
         using var context = DbFactory.CreateDbContext();
-        return context.StudentGroups.Any(e => e.ID == id);
+        return context.StudentGroups.Any(e => e.Id == id);
     }
 }

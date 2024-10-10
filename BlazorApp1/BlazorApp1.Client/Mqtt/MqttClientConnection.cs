@@ -2,8 +2,8 @@
 using MQTTnet.Formatter;
 using MQTTnet;
 using System.Security.Authentication;
-using System.Threading;
 using System.Security.Cryptography.X509Certificates;
+using BlazorApp1.Client.Pages;
 
 namespace BlazorApp1.Client.Mqtt
 {
@@ -14,8 +14,6 @@ namespace BlazorApp1.Client.Mqtt
             /*
              * This sample disconnects in a clean way. This will send a Mqtt DISCONNECT packet
              * to the server and close the connection afterwards.
-             *
-             * See sample _Connect_Client_ for more details.
              */
             await mqttClient
                 .DisconnectAsync(new MqttClientDisconnectOptionsBuilder()
@@ -96,7 +94,7 @@ namespace BlazorApp1.Client.Mqtt
             response.DumpToConsole();
         }
 
-        public static async Task Connect_Client_Using_WebSockets(IMqttClient mqttClient)
+        public static async Task ConnectClientUsingWebSockets(IMqttClient mqttClient)
         {
             /*
              * This sample creates a simple Mqtt client and connects to a public broker using a WebSocket connection.
@@ -113,7 +111,7 @@ namespace BlazorApp1.Client.Mqtt
             response.DumpToConsole();
         }
 
-        public static async Task Connect_Client_Using_WebSocketsTls(IMqttClient mqttClient)
+        public static async Task ConnectClientUsingWebSocketsTls(IMqttClient mqttClient)
         {
             /*
              * This sample creates a simple Mqtt client and connects to a public broker using a WebSocket connection.
@@ -125,7 +123,16 @@ namespace BlazorApp1.Client.Mqtt
             var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
             if (response.ResultCode == MqttClientConnectResultCode.Success)
-                Console.WriteLine("The Mqtt client is connected by WebSockets.");
+            {
+                var message = "The Mqtt client is connected by WebSockets";
+                Programming.LogDebugMessage(message);
+                Console.WriteLine(message);
+            }
+            else
+            {
+                var message = $"Connecting to Mqtt broker gone wrong : {response}";
+                Programming.LogDebugMessage(message);
+            }
 
             response.DumpToConsole();
         }

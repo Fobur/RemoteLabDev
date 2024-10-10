@@ -1,15 +1,17 @@
 ﻿@page "/admin/studentgroups/create"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Создание новой учебной группы</PageTitle>
 
-<h1>Create</h1>
+<h1>Создание новой учебной группы</h1>
 
-<h4>StudentGroup</h4>
+<h4>Учебная группа</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -17,22 +19,22 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
-                <label for="name" class="form-label">Name:</label> 
+                <label for="name" class="form-label">Название группы:</label> 
                 <InputText id="name" @bind-Value="StudentGroup.Name" class="form-control" /> 
                 <ValidationMessage For="() => StudentGroup.Name" class="text-danger" /> 
             </div>        
             <div class="mb-3">
-                <label for="description" class="form-label">Description:</label> 
+                <label for="description" class="form-label">Описание:</label> 
                 <InputText id="description" @bind-Value="StudentGroup.Description" class="form-control" /> 
                 <ValidationMessage For="() => StudentGroup.Description" class="text-danger" /> 
             </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary">Создать</button>
         </EditForm>
     </div>
 </div>
 
 <div>
-    <a href="/admin/studentgroups">Back to List</a>
+    <a href="/admin/studentgroups">Назад к списку учебных групп</a>
 </div>
 
 @code {
@@ -43,7 +45,7 @@
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddStudentGroup()
     {
-        StudentGroup.ID = Guid.NewGuid().ToString();
+        StudentGroup.Id = Guid.NewGuid().ToString();
         using var context = DbFactory.CreateDbContext();
         context.StudentGroups.Add(StudentGroup);
         await context.SaveChangesAsync();

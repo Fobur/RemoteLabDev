@@ -7,21 +7,21 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Список пользователей</PageTitle>
 
-<h1>Index</h1>
+<h1>Список пользователей</h1>
 
 <p>
-    <a href="/admin/users/create">Create New</a>
+    <a href="/admin/users/create">Создать нового пользователя</a>
 </p>
 
 <QuickGrid Class="table" Items="DbFactory.CreateDbContext().Users">
-    <PropertyColumn Property="user => user.UserName" />
-    <PropertyColumn Property="user => user.Email" />
+    <PropertyColumn Property="user => user.UserName" Title="Ник"/>
+    <PropertyColumn Property="user => user.Email" Title="Почта"/>
 
     <TemplateColumn Context="user">
-        <a href="@($"admin/users/edit?id={user.Id}")">Edit</a> |
-        <a href="@($"admin/users/details?id={user.Id}")">Details</a> |
-        <a href="@($"admin/users/delete?id={user.Id}")">Delete</a>
+        <a href="@($"admin/users/edit?id={user.Id}")">Редактировать</a> |
+        <a href="@($"admin/users/details?id={user.Id}")">Подробности</a> |
+        <a href="@($"admin/users/delete?id={user.Id}")">Удалить</a>
     </TemplateColumn>
 </QuickGrid>

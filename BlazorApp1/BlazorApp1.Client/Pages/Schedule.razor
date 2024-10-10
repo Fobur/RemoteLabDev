@@ -3,9 +3,10 @@
 @using Microsoft.AspNetCore.Http
 @using Radzen.Blazor
 @using Radzen
+@using System.Globalization
 @inject DialogService DialogService
 @inject HttpClient HttpClient
-@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@rendermode InteractiveWebAssembly
 
 <RadzenComponents />
 <RadzenTheme Theme="material" @rendermode="InteractiveAuto" />
@@ -15,17 +16,18 @@
 
 <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="AppointmentStand" Data="standAppointments"
                  StartProperty="StartAppointment" EndProperty="EndAppointment" TextProperty="Text"
-                 SelectedIndex="2"
+                 SelectedIndex="2" Culture=@_culture
                  SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
                  AppointmentMove=@OnAppointmentMove>
-    <RadzenDayView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" />
-    <RadzenWeekView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" />
-    <RadzenMonthView />
+    <RadzenDayView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" Text="День"/>
+    <RadzenWeekView StartTime="@TimeSpan.FromHours(0)" EndTime="@TimeSpan.FromHours(24)" Text="Неделя"/>
+    <RadzenMonthView Text="Месяц"/>
 </RadzenScheduler>
 
 @code {
     [SupplyParameterFromQuery]
     public int? StandID { get; set; }
+    CultureInfo _culture = CultureInfo.GetCultureInfo("ru-RU");
 
     RadzenScheduler<AppointmentStand> scheduler;
     IList<AppointmentStand> standAppointments { get; set; }
@@ -91,19 +93,19 @@
 
         var copy = new AppointmentStand
             {
-                ID = args.Data.ID,
-                StandID = args.Data.StandID,
-                SchedulerID = args.Data.SchedulerID,
+                Id = args.Data.Id,
+                StandId = args.Data.StandId,
+                SchedulerId = args.Data.SchedulerId,
                 StartAppointment = args.Data.StartAppointment,
                 EndAppointment = args.Data.EndAppointment,
-                UserID = userId
+                UserId = userId
             };
 
         HttpResponseMessage response = await DialogService.OpenAsync<EditAppointmentPage>("Edit Appointment",
             new Dictionary<string, object> { { "AppointmentStand", copy } });
 
         if (response != null && !((HttpResponseMessage)response).IsSuccessStatusCode)
-    {
+        {
             var error = await response.Content.ReadFromJsonAsync<string>();
             if (error != null) await DialogService.Alert(error, $"Can't modify appointment", new AlertOptions() { OkButtonText = "Ok" });
         }
@@ -116,7 +118,7 @@
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<AppointmentStand> args)
     {
         // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
-        if (args.Data.UserID == userId)
+        if (args.Data.UserId == userId)
         {
             args.Attributes["style"] = "background: red";
         }
@@ -125,7 +127,7 @@
     async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
     {
         var draggedAppointment = standAppointments.FirstOrDefault(x => x == args.Appointment.Data);
-        
+
         if (draggedAppointment != null)
         {
             draggedAppointment.StartAppointment = draggedAppointment.StartAppointment + args.TimeSpan;

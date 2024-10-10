@@ -1,35 +1,36 @@
 ﻿@page "/admin/studentgroups/delete"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
 
+<PageTitle>Удаление учебной группы</PageTitle>
 
-<PageTitle>Delete</PageTitle>
+<h1>Удаление учебной группы</h1>
 
-<h1>Delete</h1>
-
-<h3>Are you sure you want to delete this?</h3>
+<h3>Вы уверены что хотите удалить эту учебную группу?</h3>
 <div>
-    <h4>StudentGroup</h4>
+    <h4>Учебная группа</h4>
     <hr />
     @if (studentgroup is null)
     {
-        <p><em>Loading...</em></p>
+        <p><em>Загрузка...</em></p>
     }
     else {
         <dl class="row">
-            <dt class="col-sm-2">Name</dt>
+            <dt class="col-sm-2">Название группы</dt>
             <dd class="col-sm-10">@studentgroup.Name</dd>
         </dl>
         <dl class="row">
-            <dt class="col-sm-2">Description</dt>
+            <dt class="col-sm-2">Описание</dt>
             <dd class="col-sm-10">@studentgroup.Description</dd>
         </dl>
         <EditForm method="post" Model="studentgroup" OnValidSubmit="DeleteStudentGroup" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(studentgroup is null)">Delete</button> |
-            <a href="/admin/studentgroups">Back to List</a>
+            <button type="submit" class="btn btn-danger" disabled="@(studentgroup is null)">Удалить</button> |
+            <a href="/admin/studentgroups">Назад к списку учебных групп</a>
         </EditForm>
     }
 </div>
@@ -43,7 +44,7 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        studentgroup = await context.StudentGroups.FirstOrDefaultAsync(m => m.ID == ID);
+        studentgroup = await context.StudentGroups.FirstOrDefaultAsync(m => m.Id == ID);
 
         if (studentgroup is null)
         {

@@ -6,11 +6,11 @@ namespace BlazorApp1.Models
     public class Service
     {
         [Key]
-        public string? ID { get; set; }
+        public string? Id { get; set; }
         [Required]
         public Stand? Stand { get; set; }
-        public int? ServiceTypeID { get; set; }
-        [Required, ForeignKey(nameof(ServiceTypeID))]
+        public int? ServiceTypeId { get; set; }
+        [Required, ForeignKey(nameof(ServiceTypeId))]
         public ServiceType? ServiceType { get; set; }
         [Required]
         public DateTime TimeStartService { get; set; }

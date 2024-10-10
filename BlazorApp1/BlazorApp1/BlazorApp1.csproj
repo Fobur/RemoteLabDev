@@ -8,21 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Components\Equipment\**" />
-    <Compile Remove="Migrations\**" />
-    <Content Remove="Components\Equipment\**" />
-    <Content Remove="Migrations\**" />
-    <EmbeddedResource Remove="Components\Equipment\**" />
-    <EmbeddedResource Remove="Migrations\**" />
-    <None Remove="Components\Equipment\**" />
-    <None Remove="Migrations\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="wwwroot\js\janus.js" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BlazorApp1.Client\BlazorApp1.Client.csproj" />
     <PackageReference Include="Azure.Identity" Version="1.12.0" />
     <PackageReference Include="BlazorMonaco" Version="3.2.0" />
@@ -43,11 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Migrations\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="wwwroot\js\janus.js" />
   </ItemGroup>
+
+  <PropertyGroup>
+  	<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+  </PropertyGroup>
 
 </Project>

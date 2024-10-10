@@ -1,0 +1,15 @@
+﻿.code-console {
+    min-height: 7rem;
+    max-height: 12rem;
+    overflow: auto;
+    align-items: normal;
+    flex-direction: column-reverse;
+}
+
+.connection-console {
+    min-height: 10rem;
+    max-height: 10rem;
+    overflow: auto;
+    align-items: normal;
+    flex-direction: column-reverse;
+}

@@ -6,11 +6,11 @@ namespace BlazorApp1.Models
     public class Organization
     {
         [Key]
-        public string? ID { get; set; }
+        public string? Id { get; set; }
         [Required]
         public string? Name { get; set; }
-        public string[]? StandsID { get; set; }
-        [Required, ForeignKey(nameof(StandsID))]
+        public string[]? StandsId { get; set; }
+        [Required, ForeignKey(nameof(StandsId))]
         public Stand[]? Stands { get; set; }
         [Required]
         public DateTime CreationTime { get; set; }

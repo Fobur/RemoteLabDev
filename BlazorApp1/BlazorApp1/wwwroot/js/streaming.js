@@ -28,7 +28,7 @@ if (isRightPage) {
 	});
 
 	function startJanusStreamModule() {
-		Janus.log("Initializing STREAMINGTEST?");
+		Janus.log("Initializing stream");
 		$(this).attr('disabled', true).unbind('click');
 		// Make sure the browser supports WebRTC
 		if (!Janus.isWebrtcSupported()) {

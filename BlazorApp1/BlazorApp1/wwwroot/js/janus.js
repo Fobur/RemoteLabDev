@@ -473,7 +473,7 @@ Janus.init = function (options) {
 		// Detect tab close: make sure we don't loose existing onbeforeunload handlers
 		// (note: for iOS we need to subscribe to a different event, 'pagehide', see
 		// https://gist.github.com/thehunmonkgroup/6bee8941a49b86be31a787fe8f4b8cfe)
-		let iOS = ['iPad', 'iPhone', 'iPod'].indexOf(navigator.platform) >= 0;
+		let iOS = ['iPad', 'iPhone', 'iPod'].indexOf(navigator) >= 0;
 		let eventName = iOS ? 'pagehide' : 'beforeunload';
 		let oldOBF = window["on" + eventName];
 		window.addEventListener(eventName, function () {

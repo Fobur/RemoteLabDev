@@ -39,12 +39,15 @@ namespace BlazorApp1.Data.Endpoints
         {
             try
             {
+                
                 var standAppointments = dbcontext.ScheduledStands
                     .Include(x => x.Scheduler)
                     .Include(x => x.Stand)
                     .Include(x => x.User)
-                    .Select(x => new AppointmentStand(x.ID, x.Stand.ID, x.Stand.Name, x.SchedulerID,
-                            x.User.StudentGroupID, x.User.Id, x.SessionStartTime.LocalDateTime, x.SessionEndTime.LocalDateTime))
+                    .Select(x => new AppointmentStand(x.Id, x.Stand.Id, x.Stand.Name, x.SchedulerId,
+                            x.User.StudentGroupId, x.User.Id,
+                            TimeZoneInfo.ConvertTimeFromUtc(x.SessionStartTime.DateTime, TimeZoneInfo.Local),
+                            TimeZoneInfo.ConvertTimeFromUtc(x.SessionEndTime.DateTime, TimeZoneInfo.Local)))
                     .ToList();
 
                 return Results.Ok(standAppointments);
@@ -64,15 +67,15 @@ namespace BlazorApp1.Data.Endpoints
 
             try
             {
-                if (!dbcontext.Stand.Any(x => x.ID == appointmentStand.StandID))
+                if (!dbcontext.Stand.Any(x => x.Id == appointmentStand.StandId))
                     return Results.BadRequest("No stand was found to schedule");
-                if (stands.FirstOrDefault(x => x.UserID == user.Id) == null)
+                if (stands.FirstOrDefault(x => x.UserId == user.Id) == null)
                 {
                     await dbcontext.ScheduledStands.AddAsync(new ScheduledStand
                     {
-                        StandID = appointmentStand.StandID,
-                        UserID = user.Id,
-                        ID = Guid.NewGuid().ToString(),
+                        StandId = appointmentStand.StandId,
+                        UserId = user.Id,
+                        Id = Guid.NewGuid().ToString(),
                         SessionStartTime = appointmentStand.StartAppointment.ToUniversalTime(),
                         SessionEndTime = appointmentStand.EndAppointment.ToUniversalTime()
                     });
@@ -101,7 +104,7 @@ namespace BlazorApp1.Data.Endpoints
             {
                 var standToRemove = dbcontext.ScheduledStands
                     .Include(x => x.Stand)
-                    .Where(x => x.ID == id)
+                    .Where(x => x.Id == id)
                     .FirstOrDefault();
                 if (standToRemove == null)
                     return Results.BadRequest("Stand does not exist");
@@ -124,7 +127,7 @@ namespace BlazorApp1.Data.Endpoints
             {
                 dbcontext.Attach(stand!).State = EntityState.Modified;
                 dbcontext.SaveChanges();
-                return Results.Ok($"Scheduled stand with id {stand.ID} was successfully edited");
+                return Results.Ok($"Scheduled stand with id {stand.Id} was successfully edited");
             }
             catch (Exception ex)
             {
@@ -134,8 +137,8 @@ namespace BlazorApp1.Data.Endpoints
 
         private static bool Equal(this ScheduledStand stand, AppointmentStand appointmentStand)
         {
-            return stand.StandID == appointmentStand.StandID
-                && stand.UserID == appointmentStand.UserID
+            return stand.StandId == appointmentStand.StandId
+                && stand.UserId == appointmentStand.UserId
                 && stand.SessionStartTime == appointmentStand.StartAppointment.ToUniversalTime()
                 && stand.SessionEndTime == appointmentStand.EndAppointment.ToUniversalTime();
         }

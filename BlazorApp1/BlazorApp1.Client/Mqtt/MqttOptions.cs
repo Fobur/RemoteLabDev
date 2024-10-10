@@ -29,7 +29,7 @@ namespace BlazorApp1.Client.Mqtt
         public static MqttClientOptions WebSocketTlsOptions()
         {
             return new MqttClientOptionsBuilder()
-                    .WithWebSocketServer(o => o.WithUri("wss://10.40.81.71:9001"))
+                    .WithWebSocketServer(o => o.WithUri("wss://10.40.81.71:9883"))
                     .WithClientId(Guid.NewGuid().ToString())
                     .WithTlsOptions(
                         o =>

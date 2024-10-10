@@ -7,9 +7,9 @@ namespace BlazorApp1.Models
     public class Scheduler
     {
         [Key]
-        public string? ID { get; set; }
-        public string? StudentGroupID { get; set; }
-        [Required, ForeignKey(nameof(StudentGroupID))]
+        public string? Id { get; set; }
+        public string? StudentGroupId { get; set; }
+        [Required, ForeignKey(nameof(StudentGroupId))]
         public StudentGroup? StudentGroup { get; set; }
         [Required]
         public DateTime SessionStartTime { get; set; }

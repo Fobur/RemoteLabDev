@@ -1,15 +1,17 @@
 ﻿@page "/stands/create"
 
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp1.Models
 @inject IDbContextFactory<BlazorApp1.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Создать новый стенд</PageTitle>
 
-<h1>Create</h1>
+<h1>Создать новый стенд</h1>
 
-<h4>Stand</h4>
+<h4>Стенд</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -18,36 +20,36 @@
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
                 <label for="id" class="form-label">Id:</label>
-                <InputNumber id="id" @bind-Value="Stand.ID" class="form-control" />
-                <ValidationMessage For="() => Stand.ID" class="text-danger" />
+                <InputNumber id="id" @bind-Value="Stand.Id" class="form-control" />
+                <ValidationMessage For="() => Stand.Id" class="text-danger" />
             </div>
             <div class="mb-3">
-                <label for="name" class="form-label">Name:</label> 
+                <label for="name" class="form-label">Названия стенда:</label> 
                 <InputText id="name" @bind-Value="Stand.Name" class="form-control" /> 
                 <ValidationMessage For="() => Stand.Name" class="text-danger" /> 
             </div>        
             <div class="mb-3">
-                <label for="description" class="form-label">Description:</label> 
+                <label for="description" class="form-label">Описание:</label> 
                 <InputText id="description" @bind-Value="Stand.Description" class="form-control" /> 
                 <ValidationMessage For="() => Stand.Description" class="text-danger" /> 
             </div>        
             <div class="mb-3">
-                <label for="videourl" class="form-label">VideoUrl:</label> 
+                <label for="videourl" class="form-label">Ссылка на видеопоток:</label> 
                 <InputText id="videourl" @bind-Value="Stand.VideoUrl" class="form-control" /> 
                 <ValidationMessage For="() => Stand.VideoUrl" class="text-danger" /> 
             </div>        
             <div class="mb-3">
-                <label for="ansiblescript" class="form-label">AnsibleScript:</label> 
+                <label for="ansiblescript" class="form-label">Ansible скрипт:</label>
                 <InputText id="ansiblescript" @bind-Value="Stand.AnsibleScript" class="form-control" /> 
                 <ValidationMessage For="() => Stand.AnsibleScript" class="text-danger" /> 
             </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary">Создать стенд</button>
         </EditForm>
     </div>
 </div>
 
 <div>
-    <a href="/stands">Back to List</a>
+    <a href="/stands">Обратно к списку стендов</a>
 </div>
 
 @code {

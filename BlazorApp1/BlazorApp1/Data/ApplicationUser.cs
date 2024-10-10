@@ -15,8 +15,8 @@ namespace BlazorApp1.Data
         [Required]
         public string? Patronymic { get; set; }
         
-        public string? StudentGroupID {  get; set; }
-        [ForeignKey(nameof(StudentGroupID))]
+        public string? StudentGroupId {  get; set; }
+        [ForeignKey(nameof(StudentGroupId))]
         public StudentGroup? StudentGroup { get; set; }
     }
 
